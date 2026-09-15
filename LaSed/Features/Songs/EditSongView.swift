@@ -17,8 +17,8 @@ import SwiftUI
 import Foundation
 
 private enum PestañaEditor: String, CaseIterable {
-    case datos = "Datos"
     case contenido = "Letra y acordes"
+    case datos = "Datos"
 }
 
 struct EditSongView: View {
@@ -26,7 +26,7 @@ struct EditSongView: View {
     var onChanged: () -> Void
     var onDeleted: () -> Void
 
-    @State private var pestaña: PestañaEditor = .datos
+    @State private var pestaña: PestañaEditor = .contenido
 
     @State private var song: Song?
     @State private var contentAST: ParsedSongContent?

@@ -1,0 +1,218 @@
+archivo,caracteres,lineas_no_vacias,notacion_detectada,hits_evidencia_en,hits_evidencia_solfa,lineas_acorde_detectadas,tiene_acordes,tiene_caracter_reemplazo,tiene_tabs,titulo_sospechoso,muy_corta
+001_🇦🇷 EL CHE Y LOS ROLLING.txt,1302,50,ninguna,0,0,0,False,False,False,False,False
+002_🇦🇷 PRONTA ENTREGA.txt,3344,72,ninguna,0,0,0,False,True,False,False,False
+003_🇪🇸 LOBO-HOMBRE EN PARIS.txt,1722,63,ninguna,0,0,0,False,True,True,False,False
+004_🇪🇸 SIN ALIENTO.txt,2258,75,ninguna,0,0,0,False,True,False,False,False
+005_🇵🇪 Y ES QUE SUCEDE ASI.txt,1843,57,ninguna,0,0,0,False,True,False,False,False
+006_🇵🇪 YA NO QUIERO MAS SKA.txt,2651,54,ninguna,0,0,0,False,False,True,False,False
+007_🇺🇸 HAVE YOU EVER SEEN THE RAIN.txt,1483,57,ninguna,0,0,0,False,False,False,False,False
+008_🇨🇴  ME ENAMORA.txt,2030,69,ninguna,0,0,0,False,False,False,False,False
+009_🇪🇸 LA PIEDRA REDONDA ✅.txt,3217,65,ninguna,0,0,0,False,False,True,False,False
+010_🇪🇸 DE LA NOCHE A LA MAÑANA ✅.txt,1904,62,ninguna,0,0,0,False,False,True,False,False
+011_🇦🇷 EN LA CIUDAD DE LA FURIA✅.txt,1196,39,ninguna,0,0,0,False,False,False,False,False
+012_🇦🇷 CUANDO PASE EL TEMBLOR ✅.txt,1775,54,ninguna,0,0,0,False,False,True,False,False
+013_🇦🇷 TRÁTAME SUAVEMENTE ✅.txt,1528,38,ninguna,0,0,0,False,False,False,False,False
+014_🇦🇷 NADA PERSONAL ✅.txt,1252,45,ninguna,0,0,0,False,True,True,False,False
+015_🇦🇷 DISCO ETERNO.txt,801,36,ninguna,0,0,0,False,False,False,False,False
+016_🇦🇷 AMORES LEJANOS ✅✅.txt,1654,43,ninguna,0,0,0,False,False,True,False,False
+017_🇦🇷 UN MISIL EN MI PLACARD ✅.txt,1750,46,ninguna,0,0,0,False,True,True,False,False
+018_🇦🇷 ESTOY AZULADO ✅.txt,787,15,ninguna,0,0,0,False,False,False,False,False
+019_🇦🇷 IMAGENES RETRO ✅✅.txt,1517,40,ninguna,0,0,0,False,False,True,False,False
+020_🇦🇷 LA MURALLA VERDE ✅.txt,1389,47,ninguna,0,0,0,False,False,False,False,False
+021_🇦🇷 LAMENTO BOLIVIANO ✅.txt,1431,51,ninguna,0,0,0,False,False,False,False,False
+022_🇦🇷 IGUAL QUE AYER ✅.txt,3546,88,ninguna,0,0,0,False,False,True,False,False
+023_🇦🇷 BLANCOAZUL ✅.txt,2099,47,ninguna,0,0,0,False,True,True,False,False
+024_🇦🇷 TE VI EN UN TREN ✅.txt,2065,50,ninguna,0,0,0,False,False,True,False,False
+025_🇦🇷 POR EL RESTO ✅.txt,1815,43,ninguna,0,0,0,False,False,True,False,False
+026_🇦🇷 CUANDO PASE EL TEMBLOR.txt,1923,76,ninguna,0,0,0,False,False,False,False,False
+027_🇦🇷 EL RITO.txt,1558,55,ninguna,0,0,0,False,True,True,False,False
+028_🇦🇷 ENTRE CANIBALES ✅.txt,1190,27,ninguna,0,0,0,False,False,True,False,False
+029_🇦🇷 CRIMEN.txt,1501,57,ninguna,0,0,0,False,True,True,False,False
+030_🇺🇸 BLACK ✅.txt,3691,100,ninguna,0,0,0,False,False,True,False,False
+031_🇦🇷 CADA VEZ QUE DIGO ADIOS ✅✅✅.txt,2047,71,ninguna,0,0,0,False,False,True,False,False
+032_🇦🇷 ZOOM.txt,856,37,ninguna,0,0,0,False,True,True,False,False
+033_B-7 🇦🇷 PRÓFUGOS  ✅✅.txt,2097,59,ninguna,0,0,0,False,False,True,False,False
+034_🇦🇷 PERSIANA AMERICANA  ✅.txt,1852,61,ninguna,0,0,0,False,False,True,False,False
+035_🇦🇷 GUITARRAS BLANCAS ✅.txt,1513,55,ninguna,0,0,0,False,False,True,False,False
+036_🇦🇷 FRANCÉS LIMÓN ✅.txt,2633,77,ninguna,0,0,0,False,False,False,False,False
+037_🇦🇷.txt,3,1,ninguna,0,0,0,False,False,False,True,True
+038_🇲🇽 TRISTE CANCIÓN.txt,1497,33,ninguna,0,0,0,False,False,True,False,False
+039_🇦🇷 BYE BYE.txt,2571,54,ninguna,0,0,0,False,True,True,False,False
+040_🇦🇷 TE QUIERO TANTO.txt,1944,59,ninguna,0,0,0,False,True,True,False,False
+041_🇨🇱 EL DUELO.txt,1247,44,ninguna,0,0,0,False,False,False,False,False
+042_🇬🇧 SONG 2 ✅.txt,1251,41,ninguna,0,0,0,False,True,True,False,False
+043_🇺🇸 BORN TO BE WILD.txt,1661,53,ninguna,0,0,0,False,False,False,False,False
+044_🇦🇷 MIL HORAS.txt,2065,63,ninguna,0,0,0,False,False,True,False,False
+045_🇪🇸 SIN DOCUMENTOS ✅.txt,2143,53,ninguna,0,0,0,False,True,True,False,False
+046_🇦🇷 DE MÚSICA LIGERA ✅.txt,759,29,ninguna,0,0,0,False,False,False,False,False
+047_🇦🇷 TE HACEN FALTA VITAMINAS  ✅.txt,1282,40,ninguna,0,0,0,False,False,False,False,False
+048_🇦🇷 SOBREDOSIS DE TV ✅.txt,1463,55,ninguna,0,0,0,False,False,True,False,False
+049_🇦🇷 SIGNOS ✅.txt,871,27,ninguna,0,0,0,False,False,False,False,False
+050_🇦🇷 PRÓFUGOS  ✅.txt,2162,64,ninguna,0,0,0,False,False,True,False,False
+051_🇦🇷 TU CÁRCEL ✅ (VIVO).txt,1351,32,ninguna,0,0,0,False,False,True,False,False
+052_🇦🇷 EL EXTRAÑO DE PELO LARGO ✅.txt,1620,34,ninguna,0,0,0,False,False,True,False,False
+053_🇦🇷 MOJADA - VIVO✅.txt,5004,142,ninguna,0,0,0,False,False,True,False,False
+054_🇦🇷 TRAVESTIS ✅.txt,2075,55,ninguna,0,0,0,False,False,True,False,False
+055_🇦🇷 LA PACHANGA ✅.txt,2380,84,ninguna,0,0,0,False,False,False,False,False
+056_🇦🇷 AÚN SIGO CANTANDO.txt,1894,54,ninguna,0,0,0,False,False,True,False,False
+057_🇦🇷 SIGNOS.txt,1646,89,ninguna,0,0,0,False,False,False,False,False
+058_🇦🇷 GUITARRAS BLANCAS.txt,1473,56,ninguna,0,0,0,False,False,True,False,False
+059_🇺🇸 COME AS YOU ARE.txt,1513,73,ninguna,0,0,0,False,False,False,False,False
+060_🇺🇸 RAPE ME.txt,1604,53,ninguna,0,0,0,False,False,True,False,False
+061_🇵🇪 DECIR ADIOS.txt,2155,75,ninguna,0,0,0,False,False,False,False,False
+062_🇬🇧 ROCK AND ROLL.txt,1869,61,ninguna,0,0,0,False,False,False,False,False
+063_🇬🇧 WHOLE LOTTA LOVE.txt,1090,28,ninguna,0,0,0,False,False,False,False,False
+064_🇦🇷 MARIPOSA TECNICOLOR.txt,1162,37,ninguna,0,0,0,False,False,False,False,False
+065_🇦🇷 FLACA ✅.txt,837,35,ninguna,0,0,0,False,False,False,False,False
+066_🇦🇷 NADA FUE UN ERROR ✅.txt,2796,89,ninguna,0,0,0,False,False,True,False,False
+067_🇵🇪 SUNA.txt,2467,81,ninguna,0,0,0,False,False,True,False,False
+068_🇵🇪 TRES.txt,1002,40,ninguna,0,0,0,False,True,False,False,False
+069_🇵🇪 EN ESTA HABITACIÒN.txt,2242,78,ninguna,0,0,0,False,False,False,False,False
+070_🇬🇧 ROCK AND ROLL.txt,1868,64,ninguna,0,0,0,False,False,False,False,False
+071_🇺🇸 SULTANS OF SWING.txt,3739,97,ninguna,0,0,0,False,True,False,False,False
+072_🇵🇪 LO PEOR DE TODO.txt,4435,97,ninguna,0,0,0,False,False,False,False,False
+073_🇺🇸 ACCIDENTALY IN LOVE.txt,3841,78,ninguna,0,0,0,False,False,True,False,False
+074_🇦🇷 MUCHO MEJOR.txt,2473,99,ninguna,0,0,0,False,False,False,False,False
+075_🇦🇷 TELE-KA.txt,1752,65,ninguna,0,0,0,False,False,False,False,False
+076_🇦🇹 LIFE IS LIFE.txt,935,39,ninguna,0,0,0,False,False,False,False,False
+077_🇦🇺 DON’T DREAM IS OVER.txt,2982,83,ninguna,0,0,0,False,False,False,False,False
+078_🇪🇸 MALDITO DUENDE.txt,1538,75,ninguna,0,0,0,False,False,False,False,False
+079_🇨🇱 ESTRECHEZ DE CORAZÓN.txt,1916,78,ninguna,0,0,0,False,False,False,False,False
+080_🇳🇴 TAKE ON ME.txt,949,42,ninguna,0,0,0,False,False,False,False,False
+081_🇲🇽 CHICA DE HUMO.txt,3129,76,ninguna,0,0,0,False,False,False,False,False
+082_🇦🇷 MUJER AMANTE.txt,2883,79,ninguna,0,0,0,False,False,False,False,False
+083_🇺🇸 FAITH.txt,2156,65,ninguna,0,0,0,False,False,False,False,False
+084_🇵🇪 WIRITO - Luisa.txt,3829,141,ninguna,0,0,0,False,False,False,False,False
+085_🇨🇱 TREN AL SUR.txt,2507,117,ninguna,0,0,0,False,False,False,False,False
+086_🇦🇷 TODOS TENEMOS UN AMOR.txt,2478,95,ninguna,0,0,0,False,False,False,False,False
+087_🇨🇴 TODO LO QUE QUIERES ES BAILAR.txt,2237,83,ninguna,0,0,0,False,False,False,False,False
+088_🇺🇸 SMELLS LIKE TEEN SPIRIT.txt,2320,153,ninguna,0,0,0,False,False,False,False,False
+089_🇵🇪 COMO UN PERRO.txt,1935,55,ninguna,0,0,0,False,False,False,False,False
+090_🇨🇴 OJOS MARRONES.txt,1636,72,ninguna,0,0,0,False,False,False,False,False
+091_🇦🇷 EL GENIO DEL DUB.txt,1478,23,ninguna,0,0,0,False,False,False,False,False
+092_🇦🇷 AUTO ROJO.txt,3555,102,ninguna,0,0,0,False,False,True,False,False
+093_🇺🇸 AMERICAN IDIOT.txt,2492,77,ninguna,0,0,0,False,False,False,False,False
+094_🇪🇸 INDIANA JONES.txt,2552,60,ninguna,0,0,0,False,False,True,False,False
+095_🇦🇷 ATADO A UN SETIMIENTO.txt,1632,54,ninguna,0,0,0,False,True,False,False,False
+096_🇦🇷 ES POR AMOR.txt,4799,165,ninguna,0,0,0,False,True,False,False,False
+097_🇬🇧WOMAN.txt,2157,69,ninguna,0,0,0,False,False,False,False,False
+098_🇺🇸 BEAT IT.txt,2266,14,ninguna,0,0,0,False,False,False,False,False
+099_🇬🇧 I SAW HER STANDING THERE.txt,2236,75,ninguna,0,0,0,False,False,False,False,False
+100_🇺🇸 BOYS DONT CRY.txt,2056,80,ninguna,0,0,0,False,False,True,False,False
+101_🇵🇪 EL TIEMPO.txt,2165,70,ninguna,0,0,0,False,False,True,False,False
+102_🇺🇸 OVERKILL.txt,1942,84,ninguna,0,0,0,False,False,False,False,False
+103_🇵🇪 CUÉNTAME.txt,2107,70,ninguna,0,0,0,False,False,False,False,False
+104_🇦🇷🇪🇸 MIX LOCO TU FORMA DE SER & TIROTEO.txt,2262,54,ninguna,0,0,0,False,False,False,False,False
+105_🇦🇷 JUEGOS DE SEDUCCIÓN.txt,1731,58,ninguna,0,0,0,False,False,False,False,False
+106_🇺🇸 LIKE A STONE.txt,2907,96,ninguna,0,0,0,False,False,False,False,False
+107_🇺🇸 EVEN FLOW.txt,2791,71,ninguna,0,0,0,False,False,False,False,False
+108_🇵🇪 EL REY DEL AH AH AH.txt,2064,78,ninguna,0,0,0,False,False,False,False,False
+109_🇵🇪 MALA SANGRE.txt,1821,69,ninguna,0,0,0,False,True,False,False,False
+110_🇵🇪 TE QUIERO.txt,2065,86,ninguna,0,0,0,False,False,False,False,False
+111_🇦🇷SENTIMIENTO FATAL.txt,1098,56,ninguna,0,0,0,False,False,False,False,False
+112_🇺🇸 ALL START.txt,4108,109,ninguna,0,0,0,False,False,False,False,False
+113_🇺🇸 LIVING ON A PRAYER (Dm).txt,2748,102,ninguna,0,0,0,False,False,False,False,False
+114_🇬🇧 WE WILL ROCK YOU.txt,805,9,ninguna,0,0,0,False,False,False,False,False
+115_🇺🇸 HOTEL CALIFORNIA.txt,2450,70,ninguna,0,0,0,False,False,False,False,False
+116_🇯🇲 COULD YOU BE LOVED.txt,2096,93,ninguna,0,0,0,False,False,False,False,False
+117_🇵🇪 CAROL QUIERE UN VIAJE A LONDRES.txt,1555,39,ninguna,0,0,0,False,False,False,False,False
+118_🇬🇧 HIGHWAY STAR.txt,2091,72,ninguna,0,0,0,False,False,False,False,False
+119_🇲🇽 CLAVADO EN UN BAR.txt,4920,177,ninguna,0,0,0,False,False,False,False,False
+120_🇺🇸 BASKET CASE.txt,2169,66,ninguna,0,0,0,False,False,False,False,False
+121_🇦🇷 MIX GIT.txt,6730,237,ninguna,0,0,0,False,True,False,False,False
+122_🇵🇪 CARIÑITO.txt,818,32,ninguna,0,0,0,False,False,True,False,False
+123_🇲🇽 AHORA TE PUEDES MARCHAR.txt,2398,81,ninguna,0,0,0,False,True,True,False,False
+124_🇬🇧 TWIST AND SHOUT.txt,3202,69,ninguna,0,0,0,False,False,True,False,False
+125_🇬🇧 SHOW ME THE WAY.txt,2145,93,ninguna,0,0,0,False,False,True,False,False
+126_🇬🇧 LAST TRAIN TO LONDON.txt,1669,48,ninguna,0,0,0,False,False,False,False,False
+127_🇦🇷 TARADO DE CUMPLEAÑOS.txt,1923,71,ninguna,0,0,0,False,True,False,False,False
+128_🇦🇷 LOCO.txt,1574,67,ninguna,0,0,0,False,False,False,False,False
+129_🇬🇧 SMOKE ON THE WATER.txt,2284,70,ninguna,0,0,0,False,False,True,False,False
+130_🇨🇱 POR QUÉ NO SE VAN.txt,1256,64,ninguna,0,0,0,False,False,False,False,False
+131_🇺🇸 DANCING IN THE DARK.txt,1720,54,ninguna,0,0,0,False,False,False,False,False
+132_🇲🇽 BLACK MAGIC WOMAN.txt,1056,29,ninguna,0,0,0,False,False,False,False,False
+133_🇦🇷 LA CALLE ES SU LUGAR.txt,2006,55,ninguna,0,0,0,False,True,False,False,False
+134_🇺🇸 MY SHARONA.txt,1664,55,ninguna,0,0,0,False,False,False,False,False
+135_🇵🇪ELSA.txt,1901,50,ninguna,0,0,0,False,False,False,False,False
+136_🇦🇺 WE CAN IT BE NOW-.txt,1098,37,ninguna,0,0,0,False,False,False,False,False
+137_🇬🇧 (OH) PRETTY WOMAN.txt,1589,65,ninguna,0,0,0,False,False,False,False,False
+138_🇦🇷 LUNA DE MIEL.txt,1581,58,ninguna,0,0,0,False,False,True,False,False
+"139_🇦🇷 MANUEL SANTILLAN, EL LEÓN.txt",1842,67,ninguna,0,0,0,False,False,False,False,False
+140_🇵🇪 QUÉDATE.txt,3056,87,ninguna,0,0,0,False,False,True,False,False
+141_🇺🇸WE CAN BE KNOW.txt,1133,10,ninguna,0,0,0,False,False,False,False,False
+142_🎄🇬🇧 X-MAS.txt,2208,91,ninguna,0,0,0,False,False,False,False,False
+143_🎄🇵🇷 FELIZ NAVIDAD.txt,2721,100,ninguna,0,0,0,False,False,False,False,False
+144_🎄🇺🇸 JINGLE BELLS ROCK.txt,2086,97,ninguna,0,0,0,False,False,False,False,False
+145_🇺🇸 DOWN UNDER.txt,1433,14,ninguna,0,0,0,False,False,False,False,False
+146_🇨🇱 SENTIMIENTO ORIGINAL.txt,1853,70,ninguna,0,0,0,False,True,False,False,False
+147_🇦🇷 MI ENFERMEDAD.txt,1169,27,ninguna,0,0,0,False,False,False,False,False
+148_🇺🇾 MIX NUEVA OLA.txt,2477,59,ninguna,0,0,0,False,False,True,False,False
+149_🇵🇪 CARRETERAS MOJADAS.txt,3338,83,ninguna,0,0,0,False,True,True,False,False
+150_🇺🇸SCAR TISSUE.txt,1677,50,ninguna,0,0,0,False,False,True,False,False
+151_🇪🇸 LA FLACA.txt,2410,97,ninguna,0,0,0,False,False,True,False,False
+152_🇵🇪 MAGDALENA.txt,1011,24,ninguna,0,0,0,False,False,False,False,False
+153_🇮🇹 LAURA NO ESTÁ.txt,3023,58,ninguna,0,0,0,False,False,False,False,False
+154_🇬🇧 COME TOGETHER.txt,1169,55,ninguna,0,0,0,False,False,False,False,False
+155_🇺🇸 BY THE WAY.txt,1662,19,ninguna,0,0,0,False,False,False,False,False
+156_🇺🇸CANT STOP.txt,2675,71,ninguna,0,0,0,False,False,False,False,False
+157_🇪🇸 COMO UN BURRO AMARRADO.txt,1517,47,ninguna,0,0,0,False,False,False,False,False
+158_🇬🇧 (I CAN’T GET NO) SATISFACTION.txt,1727,66,ninguna,0,0,0,False,False,True,False,False
+159_🇬🇧 ROXANE.txt,1532,54,ninguna,0,0,0,False,False,False,False,False
+160_🇬🇧 HEY JUDE.txt,2436,91,ninguna,0,0,0,False,False,False,False,False
+161_🇨🇴 MI PRIMER MILLON.txt,4089,136,ninguna,0,0,0,False,False,False,False,False
+162_🇺🇸SANTERIA.txt,2184,70,ninguna,0,0,0,False,False,False,False,False
+163_🇵🇪 UN VINO UNA CERVEZA.txt,3952,132,ninguna,0,0,0,False,False,False,False,False
+164_🇵🇪 ME ESTOY ENAMORANDO.txt,1959,51,ninguna,0,0,0,False,False,True,False,False
+165_🇬🇧 SHOULD I SATY OR SHOULD I GO.txt,2876,83,ninguna,0,0,0,False,False,True,False,False
+166_🇦🇷 CUANDO SEAS GRANDE.txt,2490,105,ninguna,0,0,0,False,False,False,False,False
+167_🇲🇽 OYE MI AMOR.txt,1747,71,ninguna,0,0,0,False,True,True,False,False
+168_🇲🇽  RAYANDO EL SOL.txt,2755,61,ninguna,0,0,0,False,False,False,False,False
+169_🇺🇸 MANEATER.txt,2816,95,ninguna,0,0,0,False,True,True,False,False
+170_🇵🇪 MIX MAR E COPAS.txt,2008,67,ninguna,0,0,0,False,False,True,False,False
+171_🇬🇧 CREEP.txt,1866,12,ninguna,0,0,0,False,False,True,False,False
+172_🇪🇸 EN ALGÚN LUGAR.txt,2455,75,ninguna,0,0,0,False,False,False,False,False
+173_🇵🇪 LA CHATA.txt,1188,52,ninguna,0,0,0,False,False,False,False,False
+174_🇵🇪 LAS TORRES.txt,1529,17,ninguna,0,0,0,False,False,False,False,False
+175_🇦🇷 LUNES POR LA MADRUGADA.txt,730,30,ninguna,0,0,0,False,False,False,False,False
+176_🇺🇸 ARE YOU GONNA GO MY WAY.txt,1024,41,ninguna,0,0,0,False,False,False,False,False
+177_🇦🇷 PARA NO VERTE MÁS.txt,2042,112,ninguna,0,0,0,False,False,False,False,False
+178_🇵🇪 LOS GLOBOS DEL CIELO.txt,2199,45,ninguna,0,0,0,False,True,True,False,False
+179_🇵🇪 MIX CUMBIAS.txt,10376,306,ninguna,0,0,0,False,True,True,False,False
+180_🇵🇪 MIX CUMBIAS.txt,10376,306,ninguna,0,0,0,False,True,True,False,False
+181_🇵🇪 Cum. ERES MENTIROSA.txt,462,24,ninguna,0,0,0,False,False,True,False,False
+182_🇬🇧 HOW DEEP IS YOUR LOVE.txt,1661,58,ninguna,0,0,0,False,False,False,False,False
+183_🇵🇪 Cum. COLEGIALA.txt,2546,54,ninguna,0,0,0,False,True,False,False,False
+184_🇲🇽 AHORA TE PUEDES MARCHAR.txt,2283,70,ninguna,0,0,0,False,True,True,False,False
+185_🇬🇧 CRAZY LLITLE THING.txt,2602,86,ninguna,0,0,0,False,False,True,False,False
+186_🇪🇸 VENECIA.txt,3615,112,ninguna,0,0,0,False,False,True,False,False
+187_🇵🇪 UN DíA SIN SEXO.txt,2753,60,ninguna,0,0,0,False,True,True,False,False
+188_🇺🇸 WE BELONG TOGETHER.txt,1120,50,ninguna,0,0,0,False,False,True,False,False
+189_🇺🇸	COMO YO NADIE TE HA AMADO.txt,3551,130,ninguna,0,0,0,False,False,True,False,False
+190_🇦🇷 LA GUITARRA.txt,3270,92,ninguna,0,0,0,False,False,False,False,False
+191_🇬🇧 ANOTHER ONE BITES THE DUST.txt,1260,22,ninguna,0,0,0,False,False,False,False,False
+192_🌎HAPY BIRTHDAY - CUMPLEAÑOS.txt,269,9,ninguna,0,0,0,False,False,False,False,False
+193_🇨🇱SEXO.txt,2144,53,ninguna,0,0,0,False,False,True,False,False
+194_🇺🇸 LIVING ON A PRAYER.txt,2394,83,ninguna,0,0,0,False,False,False,False,False
+195_🇺🇸 HIGHER GROUND.txt,1334,35,ninguna,0,0,0,False,False,False,False,False
+196_🇨🇴  TACONES ROJOS.txt,1389,62,ninguna,0,0,0,False,False,False,False,False
+197_🇺🇸 DANI CALIFORNIA.txt,3051,100,ninguna,0,0,0,False,False,True,False,False
+198_🇵🇪 QUÉ DIFICIL ES AMAR.txt,3322,95,ninguna,0,0,0,False,False,False,False,False
+199_🇵🇪 TRICICLO PERÚ.txt,2277,60,ninguna,0,0,0,False,True,True,False,False
+200_🇬🇧 EVERY BREATH YOU TAKE.txt,2181,74,ninguna,0,0,0,False,False,False,False,False
+201_🇺🇸RAIN.txt,1118,16,ninguna,0,0,0,False,True,False,False,False
+202_🇬🇧 DONT LET ME DOWN.txt,1895,51,ninguna,0,0,0,False,False,True,False,False
+203_🇺🇸TALKING IN YOUR SLEEP.txt,2939,81,ninguna,0,0,0,False,False,False,False,False
+204_🇲🇽 CORAZÓN ESPINADO.txt,2214,83,ninguna,0,0,0,False,False,False,False,False
+205_🇺🇸 COME OUT AND PLAY.txt,2093,72,ninguna,0,0,0,False,False,False,False,False
+206_🇺🇸GIVE IT AWAY.txt,2290,57,ninguna,0,0,0,False,False,False,False,False
+207_🇺🇸 AROUND THE WORLD.txt,1549,68,ninguna,0,0,0,False,False,False,False,False
+208_🇺🇸 JAILHOUSE ROCK.txt,2571,82,ninguna,0,0,0,False,False,True,False,False
+209_🇺🇸 LA BAMBA.txt,1813,88,ninguna,0,0,0,False,False,True,False,False
+210_🇪🇸 ENTRE DOS TIERRAS.txt,2708,84,ninguna,0,0,0,False,False,True,False,False
+211_🇺🇸PLUSH.txt,1408,57,ninguna,0,0,0,False,False,False,False,False
+212_🇦🇷 DEMOLIENDO HOTELES.txt,1337,44,ninguna,0,0,0,False,False,True,False,False
+213_🇪🇸 DEVUÉLVEME A MI CHICA.txt,2143,61,ninguna,0,0,0,False,False,True,False,False
+214_🇺🇸 HOLD THE LINE.txt,3554,77,ninguna,0,0,0,False,False,True,False,False
+215_A-04🇨🇴 MIX - OJOS MARRONES & TACONES ROJOS.txt,2650,122,ninguna,0,0,0,False,False,False,False,False
+216_12.BABY I LOVE YOUR WAY.txt,2952,72,ninguna,0,0,0,False,True,False,False,False
+217_11.LOSING MY RELIGIÓN.txt,2940,114,ninguna,0,0,0,False,False,False,False,False

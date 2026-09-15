@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C86A0B653051EF8000B54CB3 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = C86A0B643051EF8000B54CB3 /* GRDB */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C86A0B473051E9BF00B54CB3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C86A0B653051EF8000B54CB3 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = LaSed;
 			packageProductDependencies = (
+				C86A0B643051EF8000B54CB3 /* GRDB */,
 			);
 			productName = LaSed;
 			productReference = C86A0B393051E9BD00B54CB3 /* LaSed.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = C86A0B303051E9BD00B54CB3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C86A0B633051EF8000B54CB3 /* XCRemoteSwiftPackageReference "GRDB" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C86A0B3A3051E9BD00B54CB3 /* Products */;
 			projectDirPath = "";
@@ -605,6 +614,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C86A0B633051EF8000B54CB3 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C86A0B643051EF8000B54CB3 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C86A0B633051EF8000B54CB3 /* XCRemoteSwiftPackageReference "GRDB" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C86A0B313051E9BD00B54CB3 /* Project object */;
 }

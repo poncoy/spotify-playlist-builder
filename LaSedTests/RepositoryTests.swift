@@ -1,0 +1,295 @@
+import Foundation
+import Testing
+import GRDB
+@testable import LaSed
+
+@Suite("Repositorios GRDB")
+struct RepositoryTests {
+
+    /// Base en memoria, aislada por test — nunca toca el .sqlite real.
+    func makeTestDB() throws -> AppDatabase {
+        try AppDatabase(DatabaseQueue())
+    }
+
+    @Test("SongRepository: create, update y fetch")
+    func songCreateUpdateFetch() throws {
+        let repo = SongRepository(try makeTestDB())
+
+        let song = Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Loco",
+            titleSpotify: nil, artist: "Andrés Calamaro",
+            matchKey: "loco|andres calamaro", isLive: false,
+            originalKey: "G", durationSec: 217, country: "Argentina",
+            language: "ESP", level: 2, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil)
+
+        try repo.create(song)
+        var fetched = try repo.fetchById("LS-0001")
+        #expect(fetched?.rev == 1)
+
+        fetched?.notes = "editado"
+        try repo.update(fetched!)
+        let refetched = try repo.fetchById("LS-0001")
+        #expect(refetched?.rev == 2)
+        #expect(refetched?.notes == "editado")
+    }
+
+    @Test("SongRepository: softDelete excluye de fetchAllActive")
+    func songSoftDelete() throws {
+        let repo = SongRepository(try makeTestDB())
+        try repo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Loco",
+            titleSpotify: nil, artist: "Andrés Calamaro",
+            matchKey: "loco|andres calamaro", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        try repo.softDelete(id: "LS-0001", by: "test")
+
+        #expect(try repo.fetchAllActive().isEmpty)
+        #expect(try repo.fetchById("LS-0001")?.deletedAt != nil)
+    }
+
+    @Test("Cascada: borrar un setlist borra sus bloques e items")
+    func setlistSoftDeleteCascades() throws {
+        let db = try makeTestDB()
+        let songRepo = SongRepository(db)
+        let setlistRepo = SetlistRepository(db)
+        let blockRepo = SetBlockRepository(db)
+        let itemRepo = SetlistItemRepository(db)
+
+        try songRepo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Loco",
+            titleSpotify: nil, artist: "Andrés Calamaro",
+            matchKey: "loco|andres calamaro", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        try setlistRepo.create(Setlist(
+            id: "SL-01", name: "Ensayo", venue: nil, date: nil,
+            notes: nil, createdAt: Date(), updatedAt: Date(),
+            deletedAt: nil, rev: 1, lastEditedBy: "test"))
+
+        try blockRepo.create(SetBlock(
+            id: "BL-01", setlistId: "SL-01", name: "A", position: 1,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test"))
+
+        try itemRepo.create(SetlistItem(
+            id: "IT-01", blockId: "BL-01", songId: "LS-0001", position: 1,
+            keyOverride: nil, capoOverride: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test"))
+
+        try setlistRepo.softDelete(id: "SL-01", by: "test")
+
+        #expect(try blockRepo.fetchActiveBySetlist("SL-01").isEmpty)
+        #expect(try itemRepo.fetchActiveByBlock("BL-01").isEmpty)
+    }
+
+    @Test("SyncOutbox recibe una entrada por cada mutación")
+    func outboxLogsEachMutation() throws {
+        let db = try makeTestDB()
+        let repo = SongRepository(db)
+        try repo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Loco",
+            titleSpotify: nil, artist: "Andrés Calamaro",
+            matchKey: "loco|andres calamaro", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+        try repo.softDelete(id: "LS-0001", by: "test")
+
+        let outboxCount = try db.dbWriter.read { d in
+            try SyncOutboxEntry.fetchCount(d)
+        }
+        #expect(outboxCount == 2) // insert + delete
+    }
+
+    // MARK: - Nuevos: matchKey automático
+
+    @Test("SongRepository: matchKey se genera solo, ignora el valor manual")
+    func matchKeyAutoGenerated() throws {
+        let repo = SongRepository(try makeTestDB())
+        try repo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "esto-se-ignora", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        let fetched = try repo.fetchById("LS-0001")
+        #expect(fetched?.matchKey == "aleluya alexander acha")
+    }
+
+    // MARK: - Nuevos: SongAlias
+
+    @Test("SongAliasRepository: create y fetch por canción")
+    func aliasCreateAndFetch() throws {
+        let db = try makeTestDB()
+        try SongRepository(db).create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        let aliasRepo = SongAliasRepository(db)
+        try aliasRepo.create(songId: "LS-0001", aliasText: "Hallelujah", by: "test")
+
+        let aliases = try aliasRepo.fetchBySong("LS-0001")
+        #expect(aliases.count == 1)
+        #expect(aliases.first?.normalizedAlias == "hallelujah")
+    }
+
+    @Test("SongAliasRepository: bloquea alias que ya pertenece a otra canción")
+    func aliasConflictBetweenSongs() throws {
+        let db = try makeTestDB()
+        let songRepo = SongRepository(db)
+        try songRepo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+        try songRepo.create(Song(
+            id: "LS-0002", spotifyId: nil, titleDisplay: "Otra Canción",
+            titleSpotify: nil, artist: "Otro Artista",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        let aliasRepo = SongAliasRepository(db)
+        try aliasRepo.create(songId: "LS-0001", aliasText: "Hallelujah", by: "test")
+
+        do {
+            try aliasRepo.create(songId: "LS-0002", aliasText: "hallelujah", by: "test")
+            Issue.record("Debió lanzar SongAliasError.conflict")
+        } catch SongAliasError.conflict(let existingSongId, let existingSongTitle) {
+            #expect(existingSongId == "LS-0001")
+            #expect(existingSongTitle == "Aleluya")
+        }
+    }
+
+    @Test("SongAliasRepository: no bloquea si el alias es de la misma canción")
+    func aliasNoConflictSameSong() throws {
+        let db = try makeTestDB()
+        try SongRepository(db).create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        let aliasRepo = SongAliasRepository(db)
+        try aliasRepo.create(songId: "LS-0001", aliasText: "Hallelujah", by: "test")
+        try aliasRepo.create(songId: "LS-0001", aliasText: "Aleluya (Cohen)", by: "test")
+
+        #expect(try aliasRepo.fetchBySong("LS-0001").count == 2)
+    }
+
+    @Test("SongAliasRepository: softDelete y restore")
+    func aliasSoftDeleteAndRestore() throws {
+        let db = try makeTestDB()
+        try SongRepository(db).create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        let aliasRepo = SongAliasRepository(db)
+        try aliasRepo.create(songId: "LS-0001", aliasText: "Hallelujah", by: "test")
+        let alias = try aliasRepo.fetchBySong("LS-0001").first!
+
+        try aliasRepo.softDelete(id: alias.id, by: "test")
+        #expect(try aliasRepo.fetchBySong("LS-0001").isEmpty)
+
+        try aliasRepo.restore(id: alias.id, by: "test")
+        #expect(try aliasRepo.fetchBySong("LS-0001").count == 1)
+    }
+
+    // MARK: - Nuevos: búsqueda FTS5
+
+    @Test("SongRepository: search encuentra canción por título")
+    func searchFindsByTitle() throws {
+        let repo = SongRepository(try makeTestDB())
+        try repo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        let results = try repo.search("Aleluya")
+        #expect(results.contains { $0.id == "LS-0001" })
+    }
+
+    @Test("SongRepository: search encuentra canción por alias")
+    func searchFindsByAlias() throws {
+        let db = try makeTestDB()
+        let songRepo = SongRepository(db)
+        try songRepo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+
+        try SongAliasRepository(db).create(songId: "LS-0001", aliasText: "Hallelujah", by: "test")
+
+        let results = try songRepo.search("Hallelujah")
+        #expect(results.contains { $0.id == "LS-0001" })
+    }
+
+    @Test("SongRepository: search no encuentra canciones borradas")
+    func searchExcludesDeletedSongs() throws {
+        let repo = SongRepository(try makeTestDB())
+        try repo.create(Song(
+            id: "LS-0001", spotifyId: nil, titleDisplay: "Aleluya",
+            titleSpotify: nil, artist: "Alexander Acha",
+            matchKey: "", isLive: false,
+            originalKey: nil, durationSec: nil, country: nil,
+            language: nil, level: nil, notes: nil,
+            createdAt: Date(), updatedAt: Date(), deletedAt: nil,
+            rev: 1, lastEditedBy: "test",
+            youtubeUrl: nil, physicalNotes: nil))
+        try repo.softDelete(id: "LS-0001", by: "test")
+
+        #expect(try repo.search("Aleluya").isEmpty)
+    }
+}

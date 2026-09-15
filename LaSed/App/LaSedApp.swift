@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct LaSedApp: App {
+    init() {
+        DispatchQueue.global(qos: .utility).async {
+            _ = MetronomeSoundEngine.shared
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootSplitView()
         }
     }
 }

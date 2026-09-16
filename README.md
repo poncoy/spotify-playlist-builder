@@ -24,7 +24,10 @@ para DJs/eventos organizados por bloques). Para cada canción del setlist:
    y agregá `http://127.0.0.1:8888` (y opcionalmente 8889, 9090, 9091, 8765, 8766) como
    Redirect URIs.
 
-3. Copiá `.env.example` a `.env` y completá `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`.
+3. Copiá `.env.example` a `.env` y completá `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`. Si
+   además completás `SPOTIFY_SECRET_ROTATED_AT` (fecha en que generaste el secret), la app te
+   avisa en cada corrida cuando falten 15, 7 o 3 días para cumplirse `SPOTIFY_SECRET_ROTATION_DAYS`
+   (90 por defecto) desde esa fecha, para que lo rotes en el dashboard de Spotify.
 
 4. Copiá `canciones.ejemplo.txt` a `canciones.txt` y reemplazalo con tu setlist real.
 

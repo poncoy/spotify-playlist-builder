@@ -9,6 +9,7 @@ from . import __version__
 from .config import CANCIONES_FILE, cargar_credenciales
 from .playlist import crear_playlist_spotify
 from .scraper import obtener_reproducciones
+from .secret_rotation import verificar_rotacion_secreto
 from .songs import Cancion, cargar_canciones
 from .spotify_api import SpotifyPlaylistClient, ms_a_hhmss
 
@@ -76,6 +77,7 @@ def main() -> pd.DataFrame | None:
     credenciales = cargar_credenciales()
     if not credenciales:
         return None
+    verificar_rotacion_secreto(credenciales)
 
     canciones, nombre_evento = cargar_canciones(CANCIONES_FILE)
     if not canciones:

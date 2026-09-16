@@ -1,0 +1,31 @@
+# Secretos y credenciales
+.env
+credenciales.txt
+
+# Tokens de sesión de Spotify (spotipy)
+.cache
+.cache-*
+.cache_*
+
+# Setlist real (usar canciones.ejemplo.txt como plantilla)
+canciones.txt
+
+# Salidas generadas
+*.csv
+*.xlsx
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Driver de Chrome (Selenium Manager lo descarga automáticamente)
+chromedriver

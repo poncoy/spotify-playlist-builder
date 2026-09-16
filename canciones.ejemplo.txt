@@ -1,0 +1,7 @@
+# Evento: Nombre del evento
+Bloque;Orden;Canción;Artista
+A;1;Come Together;The Beatles
+A;2;Black Magic Woman;Santana
+A;3;Smoke on the Water;Deep Purple
+B;1;Born to Be Wild;Steppenwolf
+B;AUX;Crazy Little Thing Called Love;Queen

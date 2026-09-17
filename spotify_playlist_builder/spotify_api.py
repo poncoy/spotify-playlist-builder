@@ -48,7 +48,9 @@ SCOPE_PLAYLIST = "playlist-modify-public playlist-modify-private user-read-priva
 
 @dataclass
 class TrackInfo:
+    id: str
     url: str
+    artist_url: str
     nombre: str
     artista: str
     duracion_ms: int
@@ -189,7 +191,9 @@ class SpotifyPlaylistClient:
         release_date = track.get("album", {}).get("release_date", "")
 
         return TrackInfo(
+            id=track["id"],
             url=track["external_urls"]["spotify"],
+            artist_url=track["artists"][0]["external_urls"]["spotify"],
             nombre=track["name"],
             artista=_artistas_legibles(track),
             duracion_ms=track["duration_ms"],

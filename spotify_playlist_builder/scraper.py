@@ -1,8 +1,19 @@
 """Extracción del número de reproducciones directamente de la página web de Spotify.
 
 La API pública de Spotify no expone el contador de reproducciones de un track,
-así que lo leemos con Selenium desde la página del track (mismo número que ves
-en la app/web de Spotify).
+así que lo leemos con Selenium. Dos caminos, de más a menos confiable:
+
+1. La sección "Popular" de la página del artista: lista sus ~10 temas más
+   escuchados junto con las reproducciones, en un HTML estable
+   (data-testid="tracklist-row" / "internal-track-link"). Una sola carga de
+   página cubre todas las canciones del setlist de ese artista.
+2. La página individual del track, para lo que no aparece en "Popular"
+   (covers menos conocidos). El HTML ahí es mucho menos estable, así que se
+   prueban varias estrategias de más a menos específica.
+
+(La columna "Reproducciones" que se ve en el álbum dentro de la app de
+escritorio de Spotify no existe en el reproductor web, así que no es una
+fuente disponible para este scraper.)
 """
 
 import random
@@ -118,35 +129,97 @@ def _ultimo_intento(driver) -> int | None:
     return _primer_numero_de_elementos(elementos[:10])
 
 
-def obtener_reproducciones(spotify_url: str, cancion_nombre: str) -> int | None:
-    """Abre la página del track en Chrome headless y extrae el contador de
-    reproducciones probando varias estrategias, de más a menos específica."""
-    driver = _crear_driver()
+TRACK_ID_EN_HREF = re.compile(r"/track/([A-Za-z0-9]+)")
+METODO_POPULAR = "Popular del artista"
+METODO_PAGINA_INDIVIDUAL = "Página individual"
+METODO_NO_ENCONTRADO = "No encontrado"
 
-    try:
-        print(f"   → Accediendo a Spotify para '{cancion_nombre}'...")
-        driver.get(spotify_url)
-        WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.TAG_NAME, "main")))
 
-        print("   → Esperando carga de datos...")
-        time.sleep(8 + random.uniform(1, 3))
+class ReproduccionesScraper:
+    """Scrapea reproducciones reutilizando un único Chrome headless para todo el
+    setlist, y cacheando la sección "Popular" de cada artista ya visitado."""
 
-        for metodo in (
-            _buscar_en_selectores_especificos,
-            _buscar_en_elementos_de_estadisticas,
-            _buscar_por_contexto_en_page_source,
-            _ultimo_intento,
-        ):
-            reproducciones = metodo(driver)
-            if reproducciones:
-                print(f"   ✅ {reproducciones:,} reproducciones para '{cancion_nombre}' ({metodo.__name__})")
-                return reproducciones
+    def __init__(self):
+        self._driver: webdriver.Chrome | None = None
+        self._cache_popular: dict[str, dict[str, int]] = {}
+
+    def cerrar(self) -> None:
+        if self._driver is not None:
+            self._driver.quit()
+            self._driver = None
+
+    def _driver_activo(self) -> webdriver.Chrome:
+        if self._driver is None:
+            self._driver = _crear_driver()
+        return self._driver
+
+    def _populares_del_artista(self, artist_url: str) -> dict[str, int]:
+        """Devuelve {track_id: reproducciones} de la sección "Popular" del
+        artista, cacheado para no volver a cargar la página por cada canción."""
+        if artist_url in self._cache_popular:
+            return self._cache_popular[artist_url]
+
+        populares: dict[str, int] = {}
+        driver = self._driver_activo()
+        try:
+            driver.get(artist_url)
+            WebDriverWait(driver, 15).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="tracklist-row"]'))
+            )
+            for row in driver.find_elements(By.CSS_SELECTOR, '[data-testid="tracklist-row"]'):
+                try:
+                    link = row.find_element(By.CSS_SELECTOR, 'a[data-testid="internal-track-link"]')
+                    match = TRACK_ID_EN_HREF.search(link.get_attribute("href") or "")
+                except Exception:
+                    continue
+                if not match:
+                    continue
+                numero = _primer_numero_de_elementos(row.find_elements(By.CSS_SELECTOR, '[role="gridcell"]'))
+                if numero:
+                    populares[match.group(1)] = numero
+        except Exception as e:
+            print(f"   ⚠️ No se pudo leer 'Popular' del artista: {e}")
+
+        self._cache_popular[artist_url] = populares
+        return populares
+
+    def _de_pagina_individual(self, spotify_url: str, cancion_nombre: str) -> int | None:
+        driver = self._driver_activo()
+        try:
+            print(f"   → Accediendo a Spotify para '{cancion_nombre}'...")
+            driver.get(spotify_url)
+            WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.TAG_NAME, "main")))
+
+            print("   → Esperando carga de datos...")
+            time.sleep(8 + random.uniform(1, 3))
+
+            for metodo in (
+                _buscar_en_selectores_especificos,
+                _buscar_en_elementos_de_estadisticas,
+                _buscar_por_contexto_en_page_source,
+                _ultimo_intento,
+            ):
+                reproducciones = metodo(driver)
+                if reproducciones:
+                    return reproducciones
+            return None
+        except Exception as e:
+            print(f"   ❌ Error: {e}")
+            return None
+
+    def obtener(self, track_id: str, spotify_url: str, artist_url: str, cancion_nombre: str) -> tuple[int | None, str]:
+        """Busca primero en el "Popular" del artista (rápido, por ID exacto) y
+        recién si no está ahí, scrapea la página individual del track."""
+        populares = self._populares_del_artista(artist_url)
+        if track_id in populares:
+            reproducciones = populares[track_id]
+            print(f"   ✅ {reproducciones:,} reproducciones para '{cancion_nombre}' ({METODO_POPULAR})")
+            return reproducciones, METODO_POPULAR
+
+        reproducciones = self._de_pagina_individual(spotify_url, cancion_nombre)
+        if reproducciones:
+            print(f"   ✅ {reproducciones:,} reproducciones para '{cancion_nombre}' ({METODO_PAGINA_INDIVIDUAL})")
+            return reproducciones, METODO_PAGINA_INDIVIDUAL
 
         print(f"   ❌ No se encontraron reproducciones para '{cancion_nombre}'")
-        return None
-
-    except Exception as e:
-        print(f"   ❌ Error: {e}")
-        return None
-    finally:
-        driver.quit()
+        return None, METODO_NO_ENCONTRADO

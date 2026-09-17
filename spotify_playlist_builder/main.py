@@ -8,7 +8,7 @@ import pandas as pd
 from . import __version__
 from .config import CANCIONES_FILE, cargar_credenciales
 from .playlist import crear_playlist_spotify
-from .scraper import obtener_reproducciones
+from .scraper import ReproduccionesScraper
 from .secret_rotation import verificar_rotacion_secreto
 from .songs import Cancion, cargar_canciones
 from .spotify_api import SpotifyPlaylistClient, ms_a_hhmss
@@ -29,10 +29,11 @@ COLUMNAS_RESUMEN = [
     "Año",
     "Bailabilidad",
     "Vivacidad",
+    "Método",
 ]
 
 
-def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
+def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion, scraper: ReproduccionesScraper) -> dict:
     """Busca una canción en Spotify y le suma el conteo de reproducciones scrapeado."""
     print(f"🔍 Buscando: '{cancion.cancion}' por '{cancion.artista}'")
 
@@ -54,6 +55,8 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
         "Vivacidad": None,
         "URL": None,
         "URI": None,
+        "ID Spotify": None,
+        "Método": "No encontrada",
     }
 
     track = client.buscar_track(cancion.cancion, cancion.artista)
@@ -64,7 +67,7 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
         f"   📍 {track.nombre} - {track.artista} | Género: {track.genero} | Tonalidad: {track.tonalidad} "
         f"| BPM: {track.bpm} | Popularidad: {track.popularidad}"
     )
-    reproducciones = obtener_reproducciones(track.url, track.nombre)
+    reproducciones, metodo = scraper.obtener(track.id, track.url, track.artist_url, track.nombre)
 
     resultado.update(
         Canción=track.nombre,
@@ -81,7 +84,9 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
         Vivacidad=track.vivacidad,
         URL=track.url,
         URI=track.uri,
+        Método=metodo,
     )
+    resultado["ID Spotify"] = track.id
     resultado["Duración (HH:MM:SS)"] = ms_a_hhmss(track.duracion_ms)
     return resultado
 
@@ -157,7 +162,11 @@ def main() -> pd.DataFrame | None:
     print("\n🔍 Procesando canciones (Chrome headless para leer reproducciones)...")
     hora_inicio = datetime.now()
     start_time = time.time()
-    resultados = [procesar_cancion(client, c) for c in canciones]
+    scraper = ReproduccionesScraper()
+    try:
+        resultados = [procesar_cancion(client, c, scraper) for c in canciones]
+    finally:
+        scraper.cerrar()
     total_time = time.time() - start_time
     hora_fin = datetime.now()
 
@@ -184,6 +193,10 @@ def main() -> pd.DataFrame | None:
     print(f"🕐 Fin:       {hora_fin.strftime('%d/%m/%Y %H:%M:%S')}")
     print(f"⏱️  Duración:  {_formato_duracion(total_time)} para {len(df)} canciones")
     print(f"📈 Encontradas: {encontradas}/{len(df)} | Con reproducciones: {con_numeros}/{len(df)}")
+
+    print("📡 Método de reproducciones:")
+    for metodo, cantidad in df["Método"].value_counts().items():
+        print(f"   {metodo}: {cantidad}")
 
     duracion_setlist_seg = sum(_hhmss_a_segundos(d) for d in df["Duración (HH:MM:SS)"])
     print(f"🎼 Duración total del setlist: {_formato_duracion(duracion_setlist_seg)}")

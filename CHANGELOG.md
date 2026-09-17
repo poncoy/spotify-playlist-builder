@@ -1,5 +1,21 @@
 # Changelog
 
+## v3.10.0
+- Caché persistente de canciones (`.cache_canciones.json`): los datos que no
+  cambian entre corridas (ID de Spotify, duración, género, tonalidad, BPM,
+  año, etc.) se guardan la primera vez y se reusan en setlists futuros que
+  repitan el mismo tema, sin volver a pegarle a Spotify/GetSongBPM. La
+  Popularidad se sigue pidiendo fresca siempre (cambia con el tiempo), igual
+  que las Reproducciones (que además no pasan por este caché en absoluto,
+  siguen viniendo del scraping de Selenium en cada corrida).
+- Circuit-breaker para `audio-features`: si la primera llamada da 403 (app
+  sin Extended Quota Mode), no se vuelve a intentar en el resto de la
+  corrida — antes se reintentaba, y fallaba, en cada canción.
+- El scraper de reproducciones por página individual cambió el `sleep` fijo
+  de 8-11s por canción por una espera activa que sondea cada 0.5s hasta
+  encontrar el dato (tope de 12s) — una página que carga en 2s ya no pierde
+  los otros 6-9s esperando porque sí.
+
 ## v3.9.0
 - Campo opcional `Versión` en `canciones.txt` (6ta columna, después de País):
   si vale `Vivo`, fuerza que la búsqueda traiga la versión en vivo del tema

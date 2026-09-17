@@ -1,12 +1,13 @@
 """Cliente de la API de Spotify: búsqueda de tracks, género, tonalidad, BPM y demás
 audio-features, y auth OAuth."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 
 from .config import Credenciales
+from .song_cache import clave_cache
 
 NOTAS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
@@ -188,13 +189,15 @@ class SpotifyPlaylistClient:
     """Envuelve los dos clientes de Spotify que necesita la app: búsqueda (app-only)
     y usuario (OAuth, necesario para crear playlists y leer audio-features)."""
 
-    def __init__(self, credenciales: Credenciales):
+    def __init__(self, credenciales: Credenciales, cache: dict | None = None):
         self._credenciales = credenciales
         auth = SpotifyClientCredentials(
             client_id=credenciales.client_id, client_secret=credenciales.client_secret
         )
         self.sp_search = spotipy.Spotify(auth_manager=auth)
         self.sp_user: spotipy.Spotify | None = None
+        self._cache = cache if cache is not None else {}
+        self._audio_features_bloqueado = False
 
     def autenticar_usuario(self) -> bool:
         """Autentica con OAuth de usuario, probando varios puertos de redirect locales
@@ -231,10 +234,14 @@ class SpotifyPlaylistClient:
         return self.sp_user if self.sp_user else self.sp_search
 
     def _audio_features_de_track(self, track_id: str) -> dict | None:
+        if self._audio_features_bloqueado:
+            return None
         try:
             audio_features = self._cliente_para_audio_features().audio_features([track_id])[0]
         except Exception as e:
             print(f"   ⚠️ Error obteniendo audio features: {e}")
+            print("   ⏭️  Tu app no tiene acceso a audio-features — no se vuelve a intentar en esta corrida")
+            self._audio_features_bloqueado = True
             return None
         return audio_features
 
@@ -265,11 +272,32 @@ class SpotifyPlaylistClient:
             **metricas,
         )
 
+    def _popularidad_actual(self, track_id: str, respaldo: int) -> int:
+        """Popularidad SIEMPRE se pide fresca (fluctúa con el tiempo), incluso
+        cuando el resto del track viene del caché."""
+        try:
+            return self.sp_search.track(track_id)["popularity"]
+        except Exception as e:
+            print(f"   ⚠️ No se pudo refrescar la popularidad, se usa la del caché: {e}")
+            return respaldo
+
     def buscar_track(self, cancion: str, artista: str, version_pedida: str = "") -> TrackInfo | None:
         """Busca una canción, primero con match exacto y luego con una búsqueda más
         laxa; en ambos casos se queda con el track de mejor score (ver _mejor_track),
         que prioriza la versión de estudio salvo que `version_pedida="vivo"` o el
-        propio título ya pida otra cosa."""
+        propio título ya pida otra cosa.
+
+        Los datos estables (BPM, tonalidad, duración, género, etc.) se cachean
+        entre corridas — no cambian entre un evento y otro. La popularidad sí
+        se vuelve a pedir siempre, ya sea de un track nuevo o de uno cacheado."""
+        clave = clave_cache(cancion, artista, version_pedida)
+        if clave in self._cache:
+            datos = dict(self._cache[clave])
+            datos["popularidad"] = self._popularidad_actual(datos["id"], datos.get("popularidad", 0))
+            info = TrackInfo(**datos)
+            print(f"   ⚡ Encontrada en caché: {info.nombre} - {info.artista}")
+            return info
+
         query = f'track:"{cancion}" artist:"{artista}"'
         resultados = self.sp_search.search(q=query, type="track", limit=10)["tracks"]["items"]
         mejor = _mejor_track(resultados, cancion, artista, version_pedida)
@@ -284,4 +312,6 @@ class SpotifyPlaylistClient:
             return None
 
         print(f"   ✅ Encontrada: {mejor['name']} - {_artistas_legibles(mejor)}")
-        return self._track_a_info(mejor)
+        info = self._track_a_info(mejor)
+        self._cache[clave] = asdict(info)
+        return info

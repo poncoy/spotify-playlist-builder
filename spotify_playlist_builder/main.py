@@ -22,6 +22,13 @@ COLUMNAS_RESUMEN = [
     "Duración (HH:MM:SS)",
     "Género",
     "Tonalidad",
+    "BPM",
+    "Popularidad",
+    "Energía",
+    "Compás",
+    "Año",
+    "Bailabilidad",
+    "Vivacidad",
 ]
 
 
@@ -40,10 +47,20 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
             "Duración (HH:MM:SS)": "00:00:00",
             "Género": "Desconocido",
             "Tonalidad": "Desconocida",
+            "BPM": None,
+            "Popularidad": None,
+            "Energía": None,
+            "Compás": None,
+            "Año": "Desconocido",
+            "Bailabilidad": None,
+            "Vivacidad": None,
             "URI": None,
         }
 
-    print(f"   📍 {track.nombre} - {track.artista} | Género: {track.genero} | Tonalidad: {track.tonalidad}")
+    print(
+        f"   📍 {track.nombre} - {track.artista} | Género: {track.genero} | Tonalidad: {track.tonalidad} "
+        f"| BPM: {track.bpm} | Popularidad: {track.popularidad}"
+    )
     reproducciones = obtener_reproducciones(track.url, track.nombre)
 
     return {
@@ -55,6 +72,13 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
         "Duración (HH:MM:SS)": ms_a_hhmss(track.duracion_ms),
         "Género": track.genero,
         "Tonalidad": track.tonalidad,
+        "BPM": track.bpm,
+        "Popularidad": track.popularidad,
+        "Energía": track.energia,
+        "Compás": track.compas,
+        "Año": track.anio_lanzamiento,
+        "Bailabilidad": track.bailabilidad,
+        "Vivacidad": track.vivacidad,
         "URL": track.url,
         "URI": track.uri,
     }

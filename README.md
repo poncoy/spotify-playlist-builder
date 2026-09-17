@@ -55,12 +55,22 @@ python -m spotify_playlist_builder
 
 El script es interactivo: pide confirmación para autenticar tu cuenta (necesario para crear
 playlists) y para elegir entre una playlist única o una por bloque. Al terminar, guarda un CSV
-`spotify_direct_<version>_<timestamp>_<duración>.csv` con reproducciones, duración, género y
-tonalidad de cada canción encontrada.
+`spotify_direct_<version>_<timestamp>_<duración>.csv` con, por canción:
+
+- Reproducciones y duración (scrapeadas/API de Spotify)
+- Género y tonalidad
+- BPM, Popularidad (0-100), Energía, Compás, Bailabilidad, Vivacidad — de `audio-features`
+- Año de lanzamiento
+
+Pensado para bandas de covers: BPM/Energía ayudan a armar la curva del show, Popularidad da una
+idea de qué temas reconoce más el público.
 
 ## Notas
 
 - El scraping de la página de Spotify puede romperse si Spotify cambia su HTML — es la única
   forma de obtener el conteo exacto de reproducciones, ya que la API oficial no lo expone.
+- El endpoint `audio-features` (BPM, energía, etc.) puede no estar disponible para apps de
+  Spotify creadas después de nov-2024 (cuota extendida). Si falla, esas columnas quedan vacías
+  pero el resto del proceso sigue igual.
 - Es un proyecto personal para uso propio/bajo demanda, no pensado para correr en paralelo
   contra muchas cuentas ni a gran escala.

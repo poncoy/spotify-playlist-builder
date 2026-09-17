@@ -7,10 +7,11 @@ credenciales.txt
 .cache-*
 .cache_*
 
-# Setlist real (usar canciones.ejemplo.txt como plantilla)
-canciones.txt
+# Setlist real (usar setlists/canciones.ejemplo.txt como plantilla)
+setlists/canciones.txt
 
 # Salidas generadas
+resultados/
 *.csv
 *.xlsx
 

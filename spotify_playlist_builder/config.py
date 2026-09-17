@@ -58,4 +58,5 @@ def cargar_credenciales() -> Credenciales | None:
     )
 
 
-CANCIONES_FILE = os.environ.get("CANCIONES_FILE", "canciones.txt")
+CANCIONES_FILE = os.environ.get("CANCIONES_FILE", "setlists/canciones.txt")
+RESULTADOS_DIR = os.environ.get("RESULTADOS_DIR", "resultados")

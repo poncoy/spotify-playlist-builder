@@ -1,5 +1,16 @@
 # Changelog
 
+## v3.7.0
+- Fallback de BPM/Tonalidad vía [GetSongBPM](https://getsongbpm.com) cuando el
+  `audio-features` de Spotify da 403 (endpoint verificado en vivo contra la
+  API real: `type=both&lookup=song:<título> artist:<artista>`). Solo cubre
+  BPM y Tonalidad — Energía/Compás/Bailabilidad/Vivacidad no tienen
+  reemplazo gratuito conocido y quedan vacías si Spotify no las da.
+- `LaSedlist.command`: launcher de doble clic para macOS, reemplaza el
+  flujo de "F5 en Jupyter".
+- Repo pasado a público (verificado que nunca tuvo secretos en el
+  historial) para poder cumplir el requisito de backlink de GetSongBPM.
+
 ## v3.6.0
 - Scraper híbrido de reproducciones: primero busca la canción (por ID exacto)
   en la sección "Popular" del artista, cacheada por artista para no recargar

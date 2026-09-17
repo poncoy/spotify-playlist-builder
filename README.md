@@ -52,17 +52,23 @@ resultados/
 
 ```
 # Evento: Nombre del evento
-Bloque;Orden;Canción;Artista
-A;1;Come Together;The Beatles
-A;2;Black Magic Woman;Santana
-B;1;Born to Be Wild;Steppenwolf
-B;AUX;Crazy Little Thing Called Love;Queen
+Bloque;Orden;Canción;Artista;País;Versión
+A;1;Come Together;The Beatles;United Kingdom;
+A;2;Black Magic Woman;Santana;Mexico;
+B;1;Born to Be Wild;Steppenwolf;United States;
+B;AUX;Crazy Little Thing Called Love;Queen;United Kingdom;Vivo
 ```
 
 - El separador se detecta automáticamente (`;`, `,`, `:`, `/`, `|` o tab).
 - `Orden` puede ser numérico o `AUX` (las AUX van al final del bloque).
 - Las canciones de un bloque llamado `Sin Bloque` se agregan en orden aleatorio; el resto
   respeta el `Orden` indicado.
+- `País` y `Versión` son opcionales (podés tener solo 4 columnas, como antes). `País` no se usa
+  para nada, es solo referencia. `Versión` solo importa cuando vale `Vivo`: fuerza que la
+  búsqueda en Spotify traiga la versión en vivo del tema en vez de la de estudio. Dejalo vacío
+  para la mayoría de las canciones — sin el campo, igual se detecta automáticamente cuando el
+  propio título ya lo dice (p. ej. "... - En Vivo", "... Gira 2007", "... El Último Concierto").
+  Este campo sirve para los casos en que el título es "limpio" pero igual querés la versión en vivo.
 
 ## Uso
 
@@ -72,6 +78,10 @@ python -m spotify_playlist_builder
 
 En macOS también podés hacer doble clic en `Execute.command` (abre la Terminal, se ubica en
 la carpeta del proyecto y corre el comando de arriba solo).
+
+Al arrancar, avisa cuándo se modificó `canciones.txt` por última vez (hoy a las HH:MM, o hace
+cuántos días) y si está vacío o tiene menos de 10 canciones — para pescar a tiempo un setlist
+viejo o incompleto antes de procesarlo entero.
 
 El script es interactivo: pide confirmación para autenticar tu cuenta (necesario para crear
 playlists) y para elegir entre una playlist única o una por bloque. Al terminar, guarda

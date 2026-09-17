@@ -1,5 +1,22 @@
 # Changelog
 
+## v3.9.0
+- Campo opcional `Versión` en `canciones.txt` (6ta columna, después de País):
+  si vale `Vivo`, fuerza que la búsqueda traiga la versión en vivo del tema
+  en vez de la de estudio. Vacío (el caso normal) sigue detectando la
+  versión automáticamente del propio título, como antes.
+- Ampliadas las palabras clave de "vivo" con "gira"/"tour" — sin esto, temas
+  como "... Me Verás Volver Gira 2007" (la gira de reunión de Soda Stereo)
+  no se detectaban como en vivo ni con el override explícito, porque el
+  título no dice literalmente "vivo"/"concierto".
+- Revisado el setlist real (`setlists/canciones.txt`) y marcadas explícitamente
+  las 7 canciones en vivo (Queen "Live at Wembley", los 2 temas de "El Último
+  Concierto" y los 4 de "Me Verás Volver Gira 2007" de Soda Stereo);
+  el resto queda en estudio (incluye las 3 "Remasterizado 2007", que son
+  estudio, no vivo).
+- Al arrancar, avisa cuándo se modificó el setlist por última vez (hoy a tal
+  hora, o hace cuántos días) y si está vacío o tiene menos de 10 canciones.
+
 ## v3.8.0
 - Bug: la búsqueda en Spotify a veces devolvía la versión "En Vivo"/acústica/
   remix de un tema en vez de la de estudio, sin que el setlist la pidiera

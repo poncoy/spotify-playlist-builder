@@ -1,4 +1,5 @@
-"""Cliente de la API de Spotify: búsqueda de tracks, género, tonalidad y auth OAuth."""
+"""Cliente de la API de Spotify: búsqueda de tracks, género, tonalidad, BPM y demás
+audio-features, y auth OAuth."""
 
 from dataclasses import dataclass
 
@@ -55,6 +56,13 @@ class TrackInfo:
     uri: str
     genero: str
     tonalidad: str
+    popularidad: int
+    anio_lanzamiento: str
+    bpm: float | None
+    energia: float | None
+    compas: int | None
+    bailabilidad: float | None
+    vivacidad: float | None
 
 
 def ms_a_hhmss(milisegundos: int | None) -> str:
@@ -139,16 +147,13 @@ class SpotifyPlaylistClient:
     def _cliente_para_audio_features(self) -> spotipy.Spotify:
         return self.sp_user if self.sp_user else self.sp_search
 
-    def _tonalidad_de_track(self, track_id: str) -> str:
+    def _audio_features_de_track(self, track_id: str) -> dict | None:
         try:
             audio_features = self._cliente_para_audio_features().audio_features([track_id])[0]
         except Exception as e:
             print(f"   ⚠️ Error obteniendo audio features: {e}")
-            return "Desconocida"
-
-        if not audio_features:
-            return "Desconocida"
-        return _tonalidad_desde_key_mode(audio_features["key"], audio_features["mode"])
+            return None
+        return audio_features
 
     def _genero_de_artista(self, artist_id: str) -> str:
         try:
@@ -161,6 +166,10 @@ class SpotifyPlaylistClient:
     def _track_a_info(self, track: dict) -> TrackInfo:
         track_id = track["id"]
         artist_id = track["artists"][0]["id"]
+        audio_features = self._audio_features_de_track(track_id)
+
+        release_date = track.get("album", {}).get("release_date", "")
+
         return TrackInfo(
             url=track["external_urls"]["spotify"],
             nombre=track["name"],
@@ -169,7 +178,16 @@ class SpotifyPlaylistClient:
             id=track_id,
             uri=track["uri"],
             genero=self._genero_de_artista(artist_id),
-            tonalidad=self._tonalidad_de_track(track_id),
+            popularidad=track.get("popularity", 0),
+            anio_lanzamiento=release_date[:4] if release_date else "Desconocido",
+            tonalidad=_tonalidad_desde_key_mode(audio_features["key"], audio_features["mode"])
+            if audio_features
+            else "Desconocida",
+            bpm=round(audio_features["tempo"]) if audio_features else None,
+            energia=audio_features["energy"] if audio_features else None,
+            compas=audio_features["time_signature"] if audio_features else None,
+            bailabilidad=audio_features["danceability"] if audio_features else None,
+            vivacidad=audio_features["liveness"] if audio_features else None,
         )
 
     def buscar_track(self, cancion: str, artista: str) -> TrackInfo | None:

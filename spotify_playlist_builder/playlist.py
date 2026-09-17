@@ -102,4 +102,5 @@ def crear_playlist_spotify(
         return crear_playlist_unica(client, nombre_evento, canciones_data)
     except Exception as e:
         print(f"❌ Error creando playlist(s): {e}")
+        print("   (el CSV con todos los datos ya se guardó antes de este paso, no se perdió nada)")
         return False

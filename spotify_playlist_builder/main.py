@@ -95,6 +95,26 @@ def _resumen_bloques(canciones: list[Cancion]) -> dict[str, int]:
     return resumen
 
 
+def _formato_duracion(segundos: float) -> str:
+    """Formatea una duración en segundos como 'Xh Ym Zs', escalando a horas si hace falta."""
+    segundos = int(segundos)
+    horas, resto = divmod(segundos, 3600)
+    minutos, segs = divmod(resto, 60)
+    if horas:
+        return f"{horas}h {minutos}min {segs}seg"
+    if minutos:
+        return f"{minutos}min {segs}seg"
+    return f"{segs}seg"
+
+
+def _hhmss_a_segundos(hhmmss: str) -> int:
+    try:
+        horas, minutos, segundos = (int(p) for p in hhmmss.split(":"))
+        return horas * 3600 + minutos * 60 + segundos
+    except (ValueError, AttributeError):
+        return 0
+
+
 def main() -> pd.DataFrame | None:
     print(f"🎵 Spotify Playlist Builder v{__version__}")
 
@@ -131,15 +151,17 @@ def main() -> pd.DataFrame | None:
         multiples_playlists = opcion == "2"
 
     print("\n🔍 Procesando canciones (Chrome headless para leer reproducciones)...")
+    hora_inicio = datetime.now()
     start_time = time.time()
     resultados = [procesar_cancion(client, c) for c in canciones]
     total_time = time.time() - start_time
+    hora_fin = datetime.now()
 
     df = pd.DataFrame(resultados)
     print("\n" + "=" * 100)
     print(df[COLUMNAS_RESUMEN].to_string(index=False))
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = hora_fin.strftime("%Y%m%d_%H%M%S")
     minutos, segundos = divmod(int(total_time), 60)
     tiempo_str = f"{minutos}min{segundos}seg" if minutos else f"{segundos}seg"
     archivo_salida = f"spotify_direct_{__version__}_{timestamp}_{tiempo_str}.csv"
@@ -151,7 +173,25 @@ def main() -> pd.DataFrame | None:
 
     encontradas = (df["Reproducciones"] != "No encontrada").sum()
     con_numeros = (df["Reproducciones"] != "No disponible").sum()
-    print(f"\n📈 Encontradas: {encontradas}/{len(df)} | Con reproducciones: {con_numeros}/{len(df)}")
+
+    print("\n" + "=" * 100)
+    print("📋 REPORTE FINAL")
+    print("=" * 100)
+    print(f"🕐 Inicio:    {hora_inicio.strftime('%d/%m/%Y %H:%M:%S')}")
+    print(f"🕐 Fin:       {hora_fin.strftime('%d/%m/%Y %H:%M:%S')}")
+    print(f"⏱️  Duración:  {_formato_duracion(total_time)} para {len(df)} canciones")
+    print(f"📈 Encontradas: {encontradas}/{len(df)} | Con reproducciones: {con_numeros}/{len(df)}")
+
+    duracion_setlist_seg = sum(_hhmss_a_segundos(d) for d in df["Duración (HH:MM:SS)"])
+    print(f"🎼 Duración total del setlist: {_formato_duracion(duracion_setlist_seg)}")
+
+    bpm_promedio = df["BPM"].dropna()
+    if len(bpm_promedio):
+        print(f"🥁 BPM promedio: {bpm_promedio.mean():.0f} (min {bpm_promedio.min():.0f} / max {bpm_promedio.max():.0f})")
+
+    popularidad_promedio = df["Popularidad"].dropna()
+    if len(popularidad_promedio):
+        print(f"🔥 Popularidad promedio: {popularidad_promedio.mean():.0f}/100")
 
     return df
 

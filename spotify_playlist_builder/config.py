@@ -18,15 +18,17 @@ class Credenciales:
     secreto_rotado_en: date | None = None
     rotacion_dias: int = ROTACION_DIAS_DEFAULT
     getsongbpm_api_key: str | None = None
+    getsongbpm_key_rotado_en: date | None = None
+    getsongbpm_rotacion_dias: int = ROTACION_DIAS_DEFAULT
 
 
-def _parsear_fecha(valor: str | None) -> date | None:
+def _parsear_fecha(variable: str, valor: str | None) -> date | None:
     if not valor:
         return None
     try:
         return date.fromisoformat(valor.strip())
     except ValueError:
-        print(f"⚠️  SPOTIFY_SECRET_ROTATED_AT='{valor}' no es una fecha válida (formato: AAAA-MM-DD)")
+        print(f"⚠️  {variable}='{valor}' no es una fecha válida (formato: AAAA-MM-DD)")
         return None
 
 
@@ -41,13 +43,18 @@ def cargar_credenciales() -> Credenciales | None:
         return None
 
     rotacion_dias = int(os.environ.get("SPOTIFY_SECRET_ROTATION_DAYS", ROTACION_DIAS_DEFAULT))
+    getsongbpm_rotacion_dias = int(os.environ.get("GETSONGBPM_KEY_ROTATION_DAYS", ROTACION_DIAS_DEFAULT))
 
     return Credenciales(
         client_id=client_id,
         client_secret=client_secret,
-        secreto_rotado_en=_parsear_fecha(os.environ.get("SPOTIFY_SECRET_ROTATED_AT")),
+        secreto_rotado_en=_parsear_fecha("SPOTIFY_SECRET_ROTATED_AT", os.environ.get("SPOTIFY_SECRET_ROTATED_AT")),
         rotacion_dias=rotacion_dias,
         getsongbpm_api_key=os.environ.get("GETSONGBPM_API_KEY"),
+        getsongbpm_key_rotado_en=_parsear_fecha(
+            "GETSONGBPM_KEY_ROTATED_AT", os.environ.get("GETSONGBPM_KEY_ROTATED_AT")
+        ),
+        getsongbpm_rotacion_dias=getsongbpm_rotacion_dias,
     )
 
 

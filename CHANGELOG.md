@@ -1,5 +1,12 @@
 # Changelog
 
+## v3.7.1
+- Generalizado el aviso de rotación (antes solo Spotify) a `verificar_rotacion()`,
+  reutilizado también para la API key de GetSongBPM (`GETSONGBPM_KEY_ROTATED_AT`
+  / `GETSONGBPM_KEY_ROTATION_DAYS`). GetSongBPM no documenta que sus keys
+  expiren — esto es un recordatorio de buena práctica, no algo que exija el
+  proveedor.
+
 ## v3.7.0
 - Fallback de BPM/Tonalidad vía [GetSongBPM](https://getsongbpm.com) cuando el
   `audio-features` de Spotify da 403 (endpoint verificado en vivo contra la

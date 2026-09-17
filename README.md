@@ -29,7 +29,9 @@ para DJs/eventos organizados por bloques). Para cada canción del setlist:
 3. Copiá `.env.example` a `.env` y completá `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`. Si
    además completás `SPOTIFY_SECRET_ROTATED_AT` (fecha en que generaste el secret), la app te
    avisa en cada corrida cuando falten 15, 7 o 3 días para cumplirse `SPOTIFY_SECRET_ROTATION_DAYS`
-   (90 por defecto) desde esa fecha, para que lo rotes en el dashboard de Spotify.
+   (90 por defecto) desde esa fecha, para que lo rotes en el dashboard de Spotify. Lo mismo aplica
+   para `GETSONGBPM_KEY_ROTATED_AT` (ver más abajo) — ninguno de los dos proveedores fuerza una
+   expiración, es solo un recordatorio de buena práctica con el plazo que vos elijas.
 
 4. Copiá `canciones.ejemplo.txt` a `canciones.txt` y reemplazalo con tu setlist real.
 

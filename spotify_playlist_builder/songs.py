@@ -40,9 +40,10 @@ def cargar_canciones(ruta: str) -> tuple[list[Cancion], str | None]:
     La primera línea puede declarar el evento: `# Evento: Nombre`.
     """
     if not os.path.exists(ruta):
-        print(f"❌ Archivo '{ruta}' no encontrado en el directorio actual")
-        print("📂 Archivos .txt disponibles:")
-        for archivo in os.listdir("."):
+        carpeta = os.path.dirname(ruta) or "."
+        print(f"❌ Archivo '{ruta}' no encontrado")
+        print(f"📂 Archivos .txt disponibles en '{carpeta}':")
+        for archivo in os.listdir(carpeta) if os.path.isdir(carpeta) else []:
             if archivo.endswith(".txt"):
                 print(f"   - {archivo}")
         return [], None

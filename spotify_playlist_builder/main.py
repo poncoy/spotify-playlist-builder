@@ -1,12 +1,13 @@
 """Punto de entrada: procesa el setlist, obtiene datos de Spotify y arma la(s) playlist(s)."""
 
+import os
 import time
 from datetime import datetime
 
 import pandas as pd
 
 from . import __version__
-from .config import CANCIONES_FILE, cargar_credenciales
+from .config import CANCIONES_FILE, RESULTADOS_DIR, cargar_credenciales
 from .getsongbpm import buscar_bpm_y_tonalidad
 from .playlist import crear_playlist_spotify
 from .scraper import ReproduccionesScraper
@@ -189,7 +190,9 @@ def main() -> pd.DataFrame | None:
     print(df[COLUMNAS_RESUMEN].to_string(index=False))
 
     timestamp = hora_fin.strftime("%Y%m%d_%H%M%S")
-    archivo_salida = f"spotify_direct_{__version__}_{timestamp}_{_formato_duracion(total_time, separador='')}.csv"
+    os.makedirs(RESULTADOS_DIR, exist_ok=True)
+    nombre_archivo = f"spotify_direct_{__version__}_{timestamp}_{_formato_duracion(total_time, separador='')}.csv"
+    archivo_salida = os.path.join(RESULTADOS_DIR, nombre_archivo)
     df.to_csv(archivo_salida, index=False, encoding="utf-8")
     print(f"\n💾 Guardado en: {archivo_salida}")
 

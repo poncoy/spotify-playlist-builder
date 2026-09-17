@@ -33,7 +33,20 @@ para DJs/eventos organizados por bloques). Para cada canción del setlist:
    para `GETSONGBPM_KEY_ROTATED_AT` (ver más abajo) — ninguno de los dos proveedores fuerza una
    expiración, es solo un recordatorio de buena práctica con el plazo que vos elijas.
 
-4. Copiá `canciones.ejemplo.txt` a `canciones.txt` y reemplazalo con tu setlist real.
+4. Copiá `setlists/canciones.ejemplo.txt` a `setlists/canciones.txt` y reemplazalo con tu
+   setlist real (o apuntá `CANCIONES_FILE` en `.env` a otra ruta).
+
+## Estructura del proyecto
+
+```
+LaSedlist.command              # doble clic para correr todo (macOS)
+spotify_playlist_builder/      # el paquete
+setlists/
+  canciones.ejemplo.txt        # plantilla de formato (versionada)
+  canciones.txt                # tu setlist real (gitignored, la editás vos)
+resultados/
+  spotify_direct_*.csv         # se genera solo en cada corrida (gitignored)
+```
 
 ## Formato de `canciones.txt`
 
@@ -61,8 +74,8 @@ En macOS también podés hacer doble clic en `LaSedlist.command` (abre la Termin
 la carpeta del proyecto y corre el comando de arriba solo).
 
 El script es interactivo: pide confirmación para autenticar tu cuenta (necesario para crear
-playlists) y para elegir entre una playlist única o una por bloque. Al terminar, guarda un CSV
-`spotify_direct_<version>_<timestamp>_<duración>.csv` con, por canción:
+playlists) y para elegir entre una playlist única o una por bloque. Al terminar, guarda
+`resultados/spotify_direct_<version>_<timestamp>_<duración>.csv` con, por canción:
 
 - ID de Spotify, Reproducciones y duración
 - Método usado para conseguir las reproducciones ("Popular del artista" / "Página individual")

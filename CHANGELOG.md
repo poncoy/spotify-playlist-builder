@@ -1,5 +1,18 @@
 # Changelog
 
+## v3.8.0
+- Bug: la búsqueda en Spotify a veces devolvía la versión "En Vivo"/acústica/
+  remix de un tema en vez de la de estudio, sin que el setlist la pidiera
+  (reportado con "Te vi en un tren"). `buscar_track` ahora puntúa todos los
+  candidatos con `_score_track`, penalizando etiquetas de versión (vivo,
+  remix, acústico, unplugged, demo, karaoke, remaster) que no estén también
+  en el texto de `canciones.txt` — si vos pedís explícitamente "... - En
+  Vivo" (como varios temas de Soda Stereo en el setlist real), se respeta
+  igual. Si solo existe la versión no pedida en Spotify, se usa esa antes
+  que no encontrar nada.
+- De paso, unificó las dos búsquedas (exacta + laxa) en una sola función de
+  scoring reusada por ambas, sacando más código duplicado.
+
 ## v3.7.1
 - Generalizado el aviso de rotación (antes solo Spotify) a `verificar_rotacion()`,
   reutilizado también para la API key de GetSongBPM (`GETSONGBPM_KEY_ROTATED_AT`

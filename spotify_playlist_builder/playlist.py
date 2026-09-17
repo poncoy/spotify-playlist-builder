@@ -22,6 +22,10 @@ def _agregar_items_en_lotes(client: SpotifyPlaylistClient, playlist_id: str, uri
             time.sleep(1)
 
 
+def _crear_playlist_vacia(client: SpotifyPlaylistClient, user_id: str, nombre: str, descripcion: str) -> dict:
+    return client.sp_user.user_playlist_create(user=user_id, name=nombre, public=False, description=descripcion)
+
+
 def crear_playlist_unica(client: SpotifyPlaylistClient, nombre_evento: str, canciones_data: list[dict]) -> bool:
     uris = _uris_validos(canciones_data)
     if not uris:
@@ -33,11 +37,8 @@ def crear_playlist_unica(client: SpotifyPlaylistClient, nombre_evento: str, canc
     nombre = f"{nombre_evento} - La Sed ({timestamp})"
 
     print(f"🎵 Creando playlist única: {nombre}")
-    playlist = client.sp_user.user_playlist_create(
-        user=user_id,
-        name=nombre,
-        public=False,
-        description=f"Playlist creada automáticamente el {timestamp} con {len(uris)} canciones",
+    playlist = _crear_playlist_vacia(
+        client, user_id, nombre, f"Playlist creada automáticamente el {timestamp} con {len(uris)} canciones"
     )
     _agregar_items_en_lotes(client, playlist["id"], uris)
 
@@ -69,12 +70,8 @@ def crear_playlists_por_bloque(client: SpotifyPlaylistClient, nombre_evento: str
         nombre = f"{bloque} - {nombre_evento} - La Sed"
         print(f"\n📁 Creando playlist: {nombre}")
 
-        playlist = client.sp_user.user_playlist_create(
-            user=user_id,
-            name=nombre,
-            public=False,
-            description=f"Playlist del {bloque} - Evento: {nombre_evento} - {len(canciones_ordenadas)} canciones",
-        )
+        descripcion = f"Playlist del {bloque} - Evento: {nombre_evento} - {len(canciones_ordenadas)} canciones"
+        playlist = _crear_playlist_vacia(client, user_id, nombre, descripcion)
         uris = [c["URI"] for c in canciones_ordenadas]
         _agregar_items_en_lotes(client, playlist["id"], uris)
 

@@ -16,6 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 RANGO_REPRODUCCIONES_VALIDO = (50_000, 5_000_000_000)
+NUMERO_CON_COMAS = re.compile(r"^\d{1,3}(?:,\d{3})+$")
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -43,6 +44,28 @@ def _es_reproduccion_valida(numero: int) -> bool:
     return RANGO_REPRODUCCIONES_VALIDO[0] <= numero <= RANGO_REPRODUCCIONES_VALIDO[1]
 
 
+def _parsear_numero_valido(texto: str) -> int | None:
+    """Convierte '1,234,567' en 1234567 si matchea el formato y cae en el rango esperado."""
+    if not NUMERO_CON_COMAS.match(texto):
+        return None
+    numero = int(texto.replace(",", ""))
+    return numero if _es_reproduccion_valida(numero) else None
+
+
+def _primer_numero_de_elementos(elementos, requiere_visible: bool = False) -> int | None:
+    for elemento in elementos:
+        try:
+            texto = elemento.text.strip()
+        except Exception:
+            continue
+        if requiere_visible and not elemento.is_displayed():
+            continue
+        numero = _parsear_numero_valido(texto)
+        if numero:
+            return numero
+    return None
+
+
 def _buscar_en_selectores_especificos(driver) -> int | None:
     try:
         main_container = driver.find_element(By.CSS_SELECTOR, "main")
@@ -58,12 +81,9 @@ def _buscar_en_selectores_especificos(driver) -> int | None:
     ]
 
     for selector in selectores:
-        for elemento in main_container.find_elements(By.CSS_SELECTOR, selector):
-            texto = elemento.text.strip()
-            if re.match(r"^\d{1,3}(?:,\d{3})+$", texto):
-                numero = int(texto.replace(",", ""))
-                if _es_reproduccion_valida(numero):
-                    return numero
+        numero = _primer_numero_de_elementos(main_container.find_elements(By.CSS_SELECTOR, selector))
+        if numero:
+            return numero
     return None
 
 
@@ -71,16 +91,7 @@ def _buscar_en_elementos_de_estadisticas(driver) -> int | None:
     stat_elements = driver.find_elements(
         By.XPATH, "//span[contains(@class, 'Type') or contains(@class, 'text')]"
     )
-    for elemento in stat_elements:
-        try:
-            texto = elemento.text.strip()
-        except Exception:
-            continue
-        if re.match(r"^\d{1,3}(?:,\d{3})+$", texto) and elemento.is_displayed():
-            numero = int(texto.replace(",", ""))
-            if _es_reproduccion_valida(numero):
-                return numero
-    return None
+    return _primer_numero_de_elementos(stat_elements, requiere_visible=True)
 
 
 def _buscar_por_contexto_en_page_source(driver) -> int | None:
@@ -104,16 +115,7 @@ def _buscar_por_contexto_en_page_source(driver) -> int | None:
 def _ultimo_intento(driver) -> int | None:
     time.sleep(5)
     elementos = driver.find_elements(By.XPATH, "//*[text()[contains(., ',')]]")
-    for elemento in elementos[:10]:
-        try:
-            texto = elemento.text.strip()
-        except Exception:
-            continue
-        if re.match(r"^\d{1,3}(?:,\d{3})+$", texto):
-            numero = int(texto.replace(",", ""))
-            if _es_reproduccion_valida(numero):
-                return numero
-    return None
+    return _primer_numero_de_elementos(elementos[:10])
 
 
 def obtener_reproducciones(spotify_url: str, cancion_nombre: str) -> int | None:

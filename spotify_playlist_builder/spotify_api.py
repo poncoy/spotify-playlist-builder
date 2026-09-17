@@ -52,7 +52,6 @@ class TrackInfo:
     nombre: str
     artista: str
     duracion_ms: int
-    id: str
     uri: str
     genero: str
     tonalidad: str
@@ -81,6 +80,27 @@ def _tonalidad_desde_key_mode(key: int | None, mode: int | None) -> str:
         return "Desconocida"
     nota = NOTAS[key]
     return nota if mode == 1 else nota + "m"  # mode 1 = mayor, 0 = menor
+
+
+def _artistas_legibles(track: dict) -> str:
+    return ", ".join(a["name"] for a in track["artists"])
+
+
+def _nombre_y_artistas(track: dict) -> tuple[str, list[str]]:
+    return track["name"].lower(), [a["name"].lower() for a in track["artists"]]
+
+
+def _metricas_desde_audio_features(audio_features: dict | None) -> dict:
+    if not audio_features:
+        return {"tonalidad": "Desconocida", "bpm": None, "energia": None, "compas": None, "bailabilidad": None, "vivacidad": None}
+    return {
+        "tonalidad": _tonalidad_desde_key_mode(audio_features["key"], audio_features["mode"]),
+        "bpm": round(audio_features["tempo"]),
+        "energia": audio_features["energy"],
+        "compas": audio_features["time_signature"],
+        "bailabilidad": audio_features["danceability"],
+        "vivacidad": audio_features["liveness"],
+    }
 
 
 def _genero_desde_lista(genres: list[str]) -> str:
@@ -164,30 +184,20 @@ class SpotifyPlaylistClient:
         return _genero_desde_lista(artist_info.get("genres", []))
 
     def _track_a_info(self, track: dict) -> TrackInfo:
-        track_id = track["id"]
         artist_id = track["artists"][0]["id"]
-        audio_features = self._audio_features_de_track(track_id)
-
+        metricas = _metricas_desde_audio_features(self._audio_features_de_track(track["id"]))
         release_date = track.get("album", {}).get("release_date", "")
 
         return TrackInfo(
             url=track["external_urls"]["spotify"],
             nombre=track["name"],
-            artista=", ".join(a["name"] for a in track["artists"]),
+            artista=_artistas_legibles(track),
             duracion_ms=track["duration_ms"],
-            id=track_id,
             uri=track["uri"],
             genero=self._genero_de_artista(artist_id),
             popularidad=track.get("popularity", 0),
             anio_lanzamiento=release_date[:4] if release_date else "Desconocido",
-            tonalidad=_tonalidad_desde_key_mode(audio_features["key"], audio_features["mode"])
-            if audio_features
-            else "Desconocida",
-            bpm=round(audio_features["tempo"]) if audio_features else None,
-            energia=audio_features["energy"] if audio_features else None,
-            compas=audio_features["time_signature"] if audio_features else None,
-            bailabilidad=audio_features["danceability"] if audio_features else None,
-            vivacidad=audio_features["liveness"] if audio_features else None,
+            **metricas,
         )
 
     def buscar_track(self, cancion: str, artista: str) -> TrackInfo | None:
@@ -197,14 +207,13 @@ class SpotifyPlaylistClient:
         resultados = self.sp_search.search(q=query, type="track", limit=5)
 
         for track in resultados["tracks"]["items"]:
-            track_name = track["name"].lower()
-            track_artists = [a["name"].lower() for a in track["artists"]]
+            track_name, track_artists = _nombre_y_artistas(track)
             coincide_nombre = cancion.lower() in track_name or track_name in cancion.lower()
             coincide_artista = any(
                 artista.lower() in a or a in artista.lower() for a in track_artists
             )
             if coincide_nombre and coincide_artista:
-                print(f"   ✅ Encontrada: {track['name']} - {', '.join(a['name'] for a in track['artists'])}")
+                print(f"   ✅ Encontrada: {track['name']} - {_artistas_legibles(track)}")
                 return self._track_a_info(track)
 
         print("   ⚠️ Búsqueda exacta fallida, intentando búsqueda general...")
@@ -212,8 +221,7 @@ class SpotifyPlaylistClient:
 
         mejor_track, mejor_score = None, 0
         for track in resultados["tracks"]["items"]:
-            track_name = track["name"].lower()
-            track_artists = [a["name"].lower() for a in track["artists"]]
+            track_name, track_artists = _nombre_y_artistas(track)
 
             score = 0
             if cancion.lower() in track_name:
@@ -230,7 +238,7 @@ class SpotifyPlaylistClient:
                 mejor_score, mejor_track = score, track
 
         if mejor_track:
-            print(f"   ✅ Mejor coincidencia: {mejor_track['name']} - {', '.join(a['name'] for a in mejor_track['artists'])}")
+            print(f"   ✅ Mejor coincidencia: {mejor_track['name']} - {_artistas_legibles(mejor_track)}")
             return self._track_a_info(mejor_track)
 
         print(f"   ❌ No se encontró coincidencia para: {cancion} - {artista}")

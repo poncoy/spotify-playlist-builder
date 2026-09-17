@@ -36,26 +36,29 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
     """Busca una canción en Spotify y le suma el conteo de reproducciones scrapeado."""
     print(f"🔍 Buscando: '{cancion.cancion}' por '{cancion.artista}'")
 
+    resultado = {
+        "Bloque": cancion.bloque,
+        "Orden": cancion.orden,
+        "Canción": cancion.cancion,
+        "Artista": cancion.artista,
+        "Reproducciones": "No encontrada",
+        "Duración (HH:MM:SS)": "00:00:00",
+        "Género": "Desconocido",
+        "Tonalidad": "Desconocida",
+        "BPM": None,
+        "Popularidad": None,
+        "Energía": None,
+        "Compás": None,
+        "Año": "Desconocido",
+        "Bailabilidad": None,
+        "Vivacidad": None,
+        "URL": None,
+        "URI": None,
+    }
+
     track = client.buscar_track(cancion.cancion, cancion.artista)
     if not track:
-        return {
-            "Bloque": cancion.bloque,
-            "Orden": cancion.orden,
-            "Canción": cancion.cancion,
-            "Artista": cancion.artista,
-            "Reproducciones": "No encontrada",
-            "Duración (HH:MM:SS)": "00:00:00",
-            "Género": "Desconocido",
-            "Tonalidad": "Desconocida",
-            "BPM": None,
-            "Popularidad": None,
-            "Energía": None,
-            "Compás": None,
-            "Año": "Desconocido",
-            "Bailabilidad": None,
-            "Vivacidad": None,
-            "URI": None,
-        }
+        return resultado
 
     print(
         f"   📍 {track.nombre} - {track.artista} | Género: {track.genero} | Tonalidad: {track.tonalidad} "
@@ -63,25 +66,24 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion) -> dict:
     )
     reproducciones = obtener_reproducciones(track.url, track.nombre)
 
-    return {
-        "Bloque": cancion.bloque,
-        "Orden": cancion.orden,
-        "Canción": track.nombre,
-        "Artista": track.artista,
-        "Reproducciones": f"{reproducciones:,}" if reproducciones else "No disponible",
-        "Duración (HH:MM:SS)": ms_a_hhmss(track.duracion_ms),
-        "Género": track.genero,
-        "Tonalidad": track.tonalidad,
-        "BPM": track.bpm,
-        "Popularidad": track.popularidad,
-        "Energía": track.energia,
-        "Compás": track.compas,
-        "Año": track.anio_lanzamiento,
-        "Bailabilidad": track.bailabilidad,
-        "Vivacidad": track.vivacidad,
-        "URL": track.url,
-        "URI": track.uri,
-    }
+    resultado.update(
+        Canción=track.nombre,
+        Artista=track.artista,
+        Reproducciones=f"{reproducciones:,}" if reproducciones else "No disponible",
+        Género=track.genero,
+        Tonalidad=track.tonalidad,
+        BPM=track.bpm,
+        Popularidad=track.popularidad,
+        Energía=track.energia,
+        Compás=track.compas,
+        Año=track.anio_lanzamiento,
+        Bailabilidad=track.bailabilidad,
+        Vivacidad=track.vivacidad,
+        URL=track.url,
+        URI=track.uri,
+    )
+    resultado["Duración (HH:MM:SS)"] = ms_a_hhmss(track.duracion_ms)
+    return resultado
 
 
 def _preguntar_si_no(mensaje: str) -> bool:
@@ -95,16 +97,18 @@ def _resumen_bloques(canciones: list[Cancion]) -> dict[str, int]:
     return resumen
 
 
-def _formato_duracion(segundos: float) -> str:
+def _formato_duracion(segundos: float, separador: str = " ") -> str:
     """Formatea una duración en segundos como 'Xh Ym Zs', escalando a horas si hace falta."""
     segundos = int(segundos)
     horas, resto = divmod(segundos, 3600)
     minutos, segs = divmod(resto, 60)
+    partes = []
     if horas:
-        return f"{horas}h {minutos}min {segs}seg"
-    if minutos:
-        return f"{minutos}min {segs}seg"
-    return f"{segs}seg"
+        partes.append(f"{horas}h")
+    if horas or minutos:
+        partes.append(f"{minutos}min")
+    partes.append(f"{segs}seg")
+    return separador.join(partes)
 
 
 def _hhmss_a_segundos(hhmmss: str) -> int:
@@ -162,17 +166,16 @@ def main() -> pd.DataFrame | None:
     print(df[COLUMNAS_RESUMEN].to_string(index=False))
 
     timestamp = hora_fin.strftime("%Y%m%d_%H%M%S")
-    minutos, segundos = divmod(int(total_time), 60)
-    tiempo_str = f"{minutos}min{segundos}seg" if minutos else f"{segundos}seg"
-    archivo_salida = f"spotify_direct_{__version__}_{timestamp}_{tiempo_str}.csv"
+    archivo_salida = f"spotify_direct_{__version__}_{timestamp}_{_formato_duracion(total_time, separador='')}.csv"
     df.to_csv(archivo_salida, index=False, encoding="utf-8")
     print(f"\n💾 Guardado en: {archivo_salida}")
 
     if spotify_user_ok:
         crear_playlist_spotify(client, nombre_evento, resultados, multiples_playlists)
 
+    sin_dato = {"No encontrada", "No disponible"}
     encontradas = (df["Reproducciones"] != "No encontrada").sum()
-    con_numeros = (df["Reproducciones"] != "No disponible").sum()
+    con_numeros = (~df["Reproducciones"].isin(sin_dato)).sum()
 
     print("\n" + "=" * 100)
     print("📋 REPORTE FINAL")

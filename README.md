@@ -58,9 +58,9 @@ playlists) y para elegir entre una playlist única o una por bloque. Al terminar
 `spotify_direct_<version>_<timestamp>_<duración>.csv` con, por canción:
 
 - Reproducciones y duración (scrapeadas/API de Spotify)
-- Género y tonalidad
-- BPM, Popularidad (0-100), Energía, Compás, Bailabilidad, Vivacidad — de `audio-features`
-- Año de lanzamiento
+- Género, Popularidad (0-100) y Año de lanzamiento (API de Spotify)
+- BPM y Tonalidad (Spotify si tu app tiene acceso a `audio-features`, si no vía GetSongBPM)
+- Energía, Compás, Bailabilidad, Vivacidad (solo si tu app tiene acceso a `audio-features`)
 
 Pensado para bandas de covers: BPM/Energía ayudan a armar la curva del show, Popularidad da una
 idea de qué temas reconoce más el público.
@@ -69,8 +69,13 @@ idea de qué temas reconoce más el público.
 
 - El scraping de la página de Spotify puede romperse si Spotify cambia su HTML — es la única
   forma de obtener el conteo exacto de reproducciones, ya que la API oficial no lo expone.
-- El endpoint `audio-features` (BPM, energía, etc.) puede no estar disponible para apps de
-  Spotify creadas después de nov-2024 (cuota extendida). Si falla, esas columnas quedan vacías
-  pero el resto del proceso sigue igual.
+- El endpoint `audio-features` de Spotify (BPM, tonalidad, energía, compás, bailabilidad,
+  vivacidad) devuelve 403 para apps sin "Extended Quota Mode" desde nov-2024 — confirmado con
+  este proyecto, no es un bug. BPM y Tonalidad se recuperan vía [GetSongBPM](https://getsongbpm.com)
+  como fuente alternativa (requiere `GETSONGBPM_API_KEY` en `.env`, ver `.env.example`); Energía,
+  Compás, Bailabilidad y Vivacidad no tienen reemplazo gratuito y quedan vacías.
 - Es un proyecto personal para uso propio/bajo demanda, no pensado para correr en paralelo
   contra muchas cuentas ni a gran escala.
+
+---
+Datos de BPM/tonalidad cuando Spotify los bloquea: [GetSongBPM.com](https://getsongbpm.com)

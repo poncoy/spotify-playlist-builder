@@ -12,6 +12,7 @@ from .getsongbpm import buscar_bpm_y_tonalidad
 from .playlist import crear_playlist_spotify
 from .scraper import ReproduccionesScraper
 from .secret_rotation import verificar_rotacion_secreto
+from .song_cache import cargar_cache, guardar_cache
 from .songs import Cancion, cargar_canciones
 from .spotify_api import SpotifyPlaylistClient, ms_a_hhmss
 
@@ -184,7 +185,8 @@ def main() -> pd.DataFrame | None:
     for bloque, cantidad in sorted(_resumen_bloques(canciones).items()):
         print(f"   - {bloque}: {cantidad} canciones")
 
-    client = SpotifyPlaylistClient(credenciales)
+    cache_canciones = cargar_cache()
+    client = SpotifyPlaylistClient(credenciales, cache=cache_canciones)
 
     print("\n🔐 Para crear la(s) playlist(s) hace falta autorizar tu cuenta de Spotify.")
     spotify_user_ok = False
@@ -206,6 +208,7 @@ def main() -> pd.DataFrame | None:
         resultados = [procesar_cancion(client, c, scraper, credenciales.getsongbpm_api_key) for c in canciones]
     finally:
         scraper.cerrar()
+        guardar_cache(cache_canciones)
     total_time = time.time() - start_time
     hora_fin = datetime.now()
 

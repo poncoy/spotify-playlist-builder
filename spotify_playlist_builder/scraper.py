@@ -16,7 +16,6 @@ escritorio de Spotify no existe en el reproductor web, así que no es una
 fuente disponible para este scraper.)
 """
 
-import random
 import re
 import time
 
@@ -77,6 +76,19 @@ def _primer_numero_de_elementos(elementos, requiere_visible: bool = False) -> in
     return None
 
 
+def _esperar_reproducciones(driver, timeout: float = 12, intervalo: float = 0.5) -> int | None:
+    """Sondea la página cada `intervalo` segundos hasta encontrar el número de
+    reproducciones o agotar `timeout`, en vez de esperar un tiempo fijo
+    (algunas páginas cargan en 2s, otras tardan bastante más)."""
+    limite = time.time() + timeout
+    while time.time() < limite:
+        numero = _buscar_en_selectores_especificos(driver)
+        if numero:
+            return numero
+        time.sleep(intervalo)
+    return None
+
+
 def _buscar_en_selectores_especificos(driver) -> int | None:
     try:
         main_container = driver.find_element(By.CSS_SELECTOR, "main")
@@ -107,7 +119,7 @@ def _buscar_en_elementos_de_estadisticas(driver) -> int | None:
 
 def _buscar_por_contexto_en_page_source(driver) -> int | None:
     driver.execute_script("window.scrollTo(0, 200);")
-    time.sleep(2)
+    time.sleep(1)
 
     palabras_relevantes = ("play", "stream", "listen", "track", "song")
     page_source = driver.page_source
@@ -124,7 +136,7 @@ def _buscar_por_contexto_en_page_source(driver) -> int | None:
 
 
 def _ultimo_intento(driver) -> int | None:
-    time.sleep(5)
+    time.sleep(2)
     elementos = driver.find_elements(By.XPATH, "//*[text()[contains(., ',')]]")
     return _primer_numero_de_elementos(elementos[:10])
 
@@ -190,15 +202,11 @@ class ReproduccionesScraper:
             driver.get(spotify_url)
             WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.TAG_NAME, "main")))
 
-            print("   → Esperando carga de datos...")
-            time.sleep(8 + random.uniform(1, 3))
+            reproducciones = _esperar_reproducciones(driver)
+            if reproducciones:
+                return reproducciones
 
-            for metodo in (
-                _buscar_en_selectores_especificos,
-                _buscar_en_elementos_de_estadisticas,
-                _buscar_por_contexto_en_page_source,
-                _ultimo_intento,
-            ):
+            for metodo in (_buscar_en_elementos_de_estadisticas, _buscar_por_contexto_en_page_source, _ultimo_intento):
                 reproducciones = metodo(driver)
                 if reproducciones:
                     return reproducciones

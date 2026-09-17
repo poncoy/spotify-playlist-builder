@@ -3,11 +3,14 @@
 Herramienta personal para armar playlists de Spotify a partir de un setlist de texto (pensada
 para DJs/eventos organizados por bloques). Para cada canción del setlist:
 
-- Busca el track en Spotify (API oficial) y obtiene género, tonalidad e ID.
+- Busca el track en Spotify (API oficial) y obtiene género, tonalidad e ID — cacheado en
+  `.cache_canciones.json`, así que un tema que ya tocaste en otro evento no se vuelve a buscar.
 - Lee el número de reproducciones tal como aparece en la web de Spotify (la API pública no
   expone ese dato): primero revisa la sección "Popular" del artista (rápido, cubre varias
   canciones del mismo artista con una sola carga de página) y, si el tema no está ahí, cae al
-  scraping de su página individual con Selenium/Chrome headless.
+  scraping de su página individual con Selenium/Chrome headless. Esto (y la Popularidad) se pide
+  siempre fresco, incluso para canciones ya cacheadas, porque son los únicos datos que cambian
+  con el tiempo.
 - Exporta todo a un CSV.
 - Crea la playlist en tu cuenta de Spotify — una única con todo el setlist, o una por bloque.
 
@@ -107,6 +110,9 @@ idea de qué temas reconoce más el público.
   Compás, Bailabilidad y Vivacidad no tienen reemplazo gratuito y quedan vacías.
 - Es un proyecto personal para uso propio/bajo demanda, no pensado para correr en paralelo
   contra muchas cuentas ni a gran escala.
+- `.cache_canciones.json` (en la raíz del proyecto, gitignored) guarda los datos estables de
+  cada canción ya procesada. Si algún dato quedó mal cacheado (p. ej. un tema mal identificado),
+  borrá esa entrada del JSON o el archivo entero — se regenera solo en la próxima corrida.
 
 ---
 Datos de BPM/tonalidad cuando Spotify los bloquea: [GetSongBPM.com](https://getsongbpm.com)

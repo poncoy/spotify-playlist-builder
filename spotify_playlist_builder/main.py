@@ -66,7 +66,7 @@ def procesar_cancion(
         "Método": "No encontrada",
     }
 
-    track = client.buscar_track(cancion.cancion, cancion.artista)
+    track = client.buscar_track(cancion.cancion, cancion.artista, cancion.version)
     if not track:
         return resultado
 
@@ -139,6 +139,29 @@ def _hhmss_a_segundos(hhmmss: str) -> int:
         return 0
 
 
+MINIMO_CANCIONES_SIN_AVISO = 10
+
+
+def _avisar_estado_setlist(ruta: str, canciones: list[Cancion]) -> None:
+    """Avisa cuándo se actualizó el setlist por última vez, y si está vacío o
+    tiene pocas canciones (posible setlist incompleto)."""
+    if os.path.exists(ruta):
+        mtime = datetime.fromtimestamp(os.path.getmtime(ruta))
+        hoy = datetime.now().date()
+        if mtime.date() == hoy:
+            print(f"🗓️  Setlist actualizado hoy a las {mtime.strftime('%H:%M')}")
+        else:
+            dias = (hoy - mtime.date()).days
+            unidad = "día" if dias == 1 else "días"
+            print(f"🗓️  Setlist actualizado por última vez el {mtime.strftime('%d/%m/%Y')} a las "
+                  f"{mtime.strftime('%H:%M')} (hace {dias} {unidad})")
+
+    if not canciones:
+        print("⚠️  El setlist está vacío.")
+    elif len(canciones) < MINIMO_CANCIONES_SIN_AVISO:
+        print(f"⚠️  Solo hay {len(canciones)} canciones cargadas (menos de {MINIMO_CANCIONES_SIN_AVISO}) — ¿es la lista completa?")
+
+
 def main() -> pd.DataFrame | None:
     print(f"🎵 Spotify Playlist Builder v{__version__}")
 
@@ -148,6 +171,7 @@ def main() -> pd.DataFrame | None:
     verificar_rotacion_secreto(credenciales)
 
     canciones, nombre_evento = cargar_canciones(CANCIONES_FILE)
+    _avisar_estado_setlist(CANCIONES_FILE, canciones)
     if not canciones:
         print(f"❌ No se pudieron cargar canciones desde '{CANCIONES_FILE}'")
         print("📝 Formato esperado:")

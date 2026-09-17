@@ -21,6 +21,7 @@ class Cancion:
     orden: int
     cancion: str
     artista: str
+    version: str = ""  # "vivo" para forzar esa versión; vacío = detección automática
 
 
 def _detectar_separador(linea: str) -> tuple[list[str], str | None]:
@@ -35,8 +36,10 @@ def _detectar_separador(linea: str) -> tuple[list[str], str | None]:
 def cargar_canciones(ruta: str) -> tuple[list[Cancion], str | None]:
     """Carga canciones con información de bloque y orden desde `ruta`.
 
-    Formato esperado por línea: Bloque;Orden;Canción;Artista
-    (el separador se detecta automáticamente entre ; , : / | o tab).
+    Formato esperado por línea: Bloque;Orden;Canción;Artista[;País][;Versión]
+    (el separador se detecta automáticamente entre ; , : / | o tab). País se
+    ignora; Versión es opcional y solo se usa si vale "vivo" (fuerza esa
+    versión en la búsqueda de Spotify en vez de la de estudio).
     La primera línea puede declarar el evento: `# Evento: Nombre`.
     """
     if not os.path.exists(ruta):
@@ -86,6 +89,7 @@ def cargar_canciones(ruta: str) -> tuple[list[Cancion], str | None]:
             print(f"   🔍 Separador detectado: '{separador_usado}' ({nombre_sep})")
 
         bloque, orden, cancion, artista = partes[0], partes[1], partes[2], partes[3]
+        version = partes[5].strip() if len(partes) >= 6 else ""
 
         try:
             orden_num = int(orden)
@@ -93,7 +97,9 @@ def cargar_canciones(ruta: str) -> tuple[list[Cancion], str | None]:
             orden_num = 999
 
         if cancion and artista:
-            canciones.append(Cancion(bloque=bloque, orden=orden_num, cancion=cancion, artista=artista))
+            canciones.append(
+                Cancion(bloque=bloque, orden=orden_num, cancion=cancion, artista=artista, version=version)
+            )
 
     print(f"   ✅ {len(canciones)} canciones cargadas correctamente")
     return canciones, nombre_evento

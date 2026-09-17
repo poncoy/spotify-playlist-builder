@@ -45,13 +45,15 @@ GENERO_POR_PRIORIDAD = {
 PUERTOS_OAUTH = [8888, 8889, 9090, 9091, 8765, 8766]
 SCOPE_PLAYLIST = "playlist-modify-public playlist-modify-private user-read-private user-read-email"
 
-# Etiquetas de versión que Spotify suele agregar al título (vivo, remix, etc.).
-# Si el usuario no las pidió explícitamente en canciones.txt, se penalizan para
-# priorizar la versión de estudio.
-MARCADORES_VERSION = (
-    "vivo", "live", "en directo", "en concierto", "acustic", "acústic",
-    "unplugged", "remix", "demo", "instrumental", "karaoke", "remaster",
+# Etiquetas de versión que Spotify suele agregar al título. Si el título
+# pedido en canciones.txt (o el campo opcional Versión) no las menciona, se
+# penalizan para priorizar la versión de estudio.
+MARCADORES_VIVO = (
+    "vivo", "live", "en directo", "en concierto", "concierto", "unplugged", "gira", "tour",
 )
+MARCADORES_OTRA_VERSION = ("remix", "demo", "instrumental", "karaoke", "remaster", "acustic", "acústic")
+
+VALORES_VERSION_VIVO = ("vivo", "en vivo", "live")
 
 
 @dataclass
@@ -100,17 +102,25 @@ def _nombre_y_artistas(track: dict) -> tuple[str, list[str]]:
     return track["name"].lower(), [a["name"].lower() for a in track["artists"]]
 
 
-def _tiene_version_no_pedida(track_name: str, cancion_pedida: str) -> bool:
-    """True si el título trae una etiqueta de versión (vivo, remix, etc.) que
-    el usuario no escribió también en canciones.txt."""
-    extra = track_name.replace(cancion_pedida, "")
-    return any(marcador in extra for marcador in MARCADORES_VERSION if marcador not in cancion_pedida)
+def _tiene_alguno(texto: str, marcadores: tuple[str, ...]) -> bool:
+    return any(marcador in texto for marcador in marcadores)
 
 
-def _score_track(track: dict, cancion: str, artista: str) -> int:
+def _quiere_vivo(cancion_lower: str, version_pedida: str) -> bool:
+    """El campo Versión (si viene) manda; si no, se infiere del propio título
+    pedido (p. ej. si ya dice "... - En Vivo" o "... Gira 2007")."""
+    version_pedida = version_pedida.strip().lower()
+    if version_pedida:
+        return version_pedida in VALORES_VERSION_VIVO
+    return _tiene_alguno(cancion_lower, MARCADORES_VIVO)
+
+
+def _score_track(track: dict, cancion: str, artista: str, version_pedida: str = "") -> int:
     """Puntúa qué tan bien matchea un track. 0 = descartado (sin coincidencia
-    de artista). Penaliza versiones (vivo/remix/etc.) que el usuario no pidió,
-    sin descartarlas del todo por si es la única disponible en Spotify."""
+    de artista). Penaliza vivo/estudio si no coincide con lo pedido (Versión o
+    el propio título), y penaliza más liviano otras variantes no pedidas
+    (remix, acústico, karaoke, etc.), sin descartarlas del todo por si son lo
+    único disponible en Spotify."""
     track_name, track_artists = _nombre_y_artistas(track)
     cancion_lower, artista_lower = cancion.lower(), artista.lower()
 
@@ -127,14 +137,16 @@ def _score_track(track: dict, cancion: str, artista: str) -> int:
         return 0
     score += 2
 
-    if _tiene_version_no_pedida(track_name, cancion_lower):
+    if _tiene_alguno(track_name, MARCADORES_VIVO) != _quiere_vivo(cancion_lower, version_pedida):
         score -= 3
+    elif _tiene_alguno(track_name, MARCADORES_OTRA_VERSION) and not _tiene_alguno(cancion_lower, MARCADORES_OTRA_VERSION):
+        score -= 2
 
     return score
 
 
-def _mejor_track(tracks: list[dict], cancion: str, artista: str) -> dict | None:
-    puntuados = [(track, _score_track(track, cancion, artista)) for track in tracks]
+def _mejor_track(tracks: list[dict], cancion: str, artista: str, version_pedida: str = "") -> dict | None:
+    puntuados = [(track, _score_track(track, cancion, artista, version_pedida)) for track in tracks]
     candidatos = [(track, score) for track, score in puntuados if score > 0]
     if not candidatos:
         return None
@@ -253,18 +265,19 @@ class SpotifyPlaylistClient:
             **metricas,
         )
 
-    def buscar_track(self, cancion: str, artista: str) -> TrackInfo | None:
+    def buscar_track(self, cancion: str, artista: str, version_pedida: str = "") -> TrackInfo | None:
         """Busca una canción, primero con match exacto y luego con una búsqueda más
         laxa; en ambos casos se queda con el track de mejor score (ver _mejor_track),
-        que prioriza la versión de estudio salvo que se haya pedido otra cosa."""
+        que prioriza la versión de estudio salvo que `version_pedida="vivo"` o el
+        propio título ya pida otra cosa."""
         query = f'track:"{cancion}" artist:"{artista}"'
         resultados = self.sp_search.search(q=query, type="track", limit=10)["tracks"]["items"]
-        mejor = _mejor_track(resultados, cancion, artista)
+        mejor = _mejor_track(resultados, cancion, artista, version_pedida)
 
         if not mejor:
             print("   ⚠️ Búsqueda exacta fallida, intentando búsqueda general...")
             resultados = self.sp_search.search(q=f"{cancion} {artista}", type="track", limit=10)["tracks"]["items"]
-            mejor = _mejor_track(resultados, cancion, artista)
+            mejor = _mejor_track(resultados, cancion, artista, version_pedida)
 
         if not mejor:
             print(f"   ❌ No se encontró coincidencia para: {cancion} - {artista}")

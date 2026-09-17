@@ -3,9 +3,11 @@
 Herramienta personal para armar playlists de Spotify a partir de un setlist de texto (pensada
 para DJs/eventos organizados por bloques). Para cada canción del setlist:
 
-- Busca el track en Spotify (API oficial) y obtiene género y tonalidad.
+- Busca el track en Spotify (API oficial) y obtiene género, tonalidad e ID.
 - Lee el número de reproducciones tal como aparece en la web de Spotify (la API pública no
-  expone ese dato, así que se scrapea con Selenium/Chrome headless).
+  expone ese dato): primero revisa la sección "Popular" del artista (rápido, cubre varias
+  canciones del mismo artista con una sola carga de página) y, si el tema no está ahí, cae al
+  scraping de su página individual con Selenium/Chrome headless.
 - Exporta todo a un CSV.
 - Crea la playlist en tu cuenta de Spotify — una única con todo el setlist, o una por bloque.
 
@@ -53,11 +55,15 @@ B;AUX;Crazy Little Thing Called Love;Queen
 python -m spotify_playlist_builder
 ```
 
+En macOS también podés hacer doble clic en `LaSedlist.command` (abre la Terminal, se ubica en
+la carpeta del proyecto y corre el comando de arriba solo).
+
 El script es interactivo: pide confirmación para autenticar tu cuenta (necesario para crear
 playlists) y para elegir entre una playlist única o una por bloque. Al terminar, guarda un CSV
 `spotify_direct_<version>_<timestamp>_<duración>.csv` con, por canción:
 
-- Reproducciones y duración (scrapeadas/API de Spotify)
+- ID de Spotify, Reproducciones y duración
+- Método usado para conseguir las reproducciones ("Popular del artista" / "Página individual")
 - Género, Popularidad (0-100) y Año de lanzamiento (API de Spotify)
 - BPM y Tonalidad (Spotify si tu app tiene acceso a `audio-features`, si no vía GetSongBPM)
 - Energía, Compás, Bailabilidad, Vivacidad (solo si tu app tiene acceso a `audio-features`)

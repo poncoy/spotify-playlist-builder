@@ -17,6 +17,7 @@ class Credenciales:
     client_secret: str
     secreto_rotado_en: date | None = None
     rotacion_dias: int = ROTACION_DIAS_DEFAULT
+    getsongbpm_api_key: str | None = None
 
 
 def _parsear_fecha(valor: str | None) -> date | None:
@@ -46,6 +47,7 @@ def cargar_credenciales() -> Credenciales | None:
         client_secret=client_secret,
         secreto_rotado_en=_parsear_fecha(os.environ.get("SPOTIFY_SECRET_ROTATED_AT")),
         rotacion_dias=rotacion_dias,
+        getsongbpm_api_key=os.environ.get("GETSONGBPM_API_KEY"),
     )
 
 

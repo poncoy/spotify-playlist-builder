@@ -7,6 +7,7 @@ import pandas as pd
 
 from . import __version__
 from .config import CANCIONES_FILE, cargar_credenciales
+from .getsongbpm import buscar_bpm_y_tonalidad
 from .playlist import crear_playlist_spotify
 from .scraper import ReproduccionesScraper
 from .secret_rotation import verificar_rotacion_secreto
@@ -33,7 +34,12 @@ COLUMNAS_RESUMEN = [
 ]
 
 
-def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion, scraper: ReproduccionesScraper) -> dict:
+def procesar_cancion(
+    client: SpotifyPlaylistClient,
+    cancion: Cancion,
+    scraper: ReproduccionesScraper,
+    getsongbpm_api_key: str | None = None,
+) -> dict:
     """Busca una canción en Spotify y le suma el conteo de reproducciones scrapeado."""
     print(f"🔍 Buscando: '{cancion.cancion}' por '{cancion.artista}'")
 
@@ -88,6 +94,14 @@ def procesar_cancion(client: SpotifyPlaylistClient, cancion: Cancion, scraper: R
     )
     resultado["ID Spotify"] = track.id
     resultado["Duración (HH:MM:SS)"] = ms_a_hhmss(track.duracion_ms)
+
+    if track.bpm is None and getsongbpm_api_key:
+        bpm, tonalidad = buscar_bpm_y_tonalidad(getsongbpm_api_key, track.nombre, track.artista)
+        if bpm is not None:
+            print(f"   🥁 BPM/tonalidad vía GetSongBPM: {bpm} / {tonalidad}")
+            resultado["BPM"] = bpm
+            resultado["Tonalidad"] = tonalidad or resultado["Tonalidad"]
+
     return resultado
 
 
@@ -164,7 +178,7 @@ def main() -> pd.DataFrame | None:
     start_time = time.time()
     scraper = ReproduccionesScraper()
     try:
-        resultados = [procesar_cancion(client, c, scraper) for c in canciones]
+        resultados = [procesar_cancion(client, c, scraper, credenciales.getsongbpm_api_key) for c in canciones]
     finally:
         scraper.cerrar()
     total_time = time.time() - start_time

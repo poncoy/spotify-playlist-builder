@@ -45,6 +45,14 @@ GENERO_POR_PRIORIDAD = {
 PUERTOS_OAUTH = [8888, 8889, 9090, 9091, 8765, 8766]
 SCOPE_PLAYLIST = "playlist-modify-public playlist-modify-private user-read-private user-read-email"
 
+# Etiquetas de versión que Spotify suele agregar al título (vivo, remix, etc.).
+# Si el usuario no las pidió explícitamente en canciones.txt, se penalizan para
+# priorizar la versión de estudio.
+MARCADORES_VERSION = (
+    "vivo", "live", "en directo", "en concierto", "acustic", "acústic",
+    "unplugged", "remix", "demo", "instrumental", "karaoke", "remaster",
+)
+
 
 @dataclass
 class TrackInfo:
@@ -90,6 +98,47 @@ def _artistas_legibles(track: dict) -> str:
 
 def _nombre_y_artistas(track: dict) -> tuple[str, list[str]]:
     return track["name"].lower(), [a["name"].lower() for a in track["artists"]]
+
+
+def _tiene_version_no_pedida(track_name: str, cancion_pedida: str) -> bool:
+    """True si el título trae una etiqueta de versión (vivo, remix, etc.) que
+    el usuario no escribió también en canciones.txt."""
+    extra = track_name.replace(cancion_pedida, "")
+    return any(marcador in extra for marcador in MARCADORES_VERSION if marcador not in cancion_pedida)
+
+
+def _score_track(track: dict, cancion: str, artista: str) -> int:
+    """Puntúa qué tan bien matchea un track. 0 = descartado (sin coincidencia
+    de artista). Penaliza versiones (vivo/remix/etc.) que el usuario no pidió,
+    sin descartarlas del todo por si es la única disponible en Spotify."""
+    track_name, track_artists = _nombre_y_artistas(track)
+    cancion_lower, artista_lower = cancion.lower(), artista.lower()
+
+    if track_name == cancion_lower:
+        score = 4
+    elif cancion_lower in track_name:
+        score = 2
+    elif track_name in cancion_lower:
+        score = 1
+    else:
+        return 0
+
+    if not any(artista_lower in a or a in artista_lower for a in track_artists):
+        return 0
+    score += 2
+
+    if _tiene_version_no_pedida(track_name, cancion_lower):
+        score -= 3
+
+    return score
+
+
+def _mejor_track(tracks: list[dict], cancion: str, artista: str) -> dict | None:
+    puntuados = [(track, _score_track(track, cancion, artista)) for track in tracks]
+    candidatos = [(track, score) for track, score in puntuados if score > 0]
+    if not candidatos:
+        return None
+    return max(candidatos, key=lambda par: par[1])[0]
 
 
 def _metricas_desde_audio_features(audio_features: dict | None) -> dict:
@@ -205,45 +254,21 @@ class SpotifyPlaylistClient:
         )
 
     def buscar_track(self, cancion: str, artista: str) -> TrackInfo | None:
-        """Busca una canción, primero con match exacto y luego con el mejor score
-        entre los resultados de una búsqueda más laxa."""
+        """Busca una canción, primero con match exacto y luego con una búsqueda más
+        laxa; en ambos casos se queda con el track de mejor score (ver _mejor_track),
+        que prioriza la versión de estudio salvo que se haya pedido otra cosa."""
         query = f'track:"{cancion}" artist:"{artista}"'
-        resultados = self.sp_search.search(q=query, type="track", limit=5)
+        resultados = self.sp_search.search(q=query, type="track", limit=10)["tracks"]["items"]
+        mejor = _mejor_track(resultados, cancion, artista)
 
-        for track in resultados["tracks"]["items"]:
-            track_name, track_artists = _nombre_y_artistas(track)
-            coincide_nombre = cancion.lower() in track_name or track_name in cancion.lower()
-            coincide_artista = any(
-                artista.lower() in a or a in artista.lower() for a in track_artists
-            )
-            if coincide_nombre and coincide_artista:
-                print(f"   ✅ Encontrada: {track['name']} - {_artistas_legibles(track)}")
-                return self._track_a_info(track)
+        if not mejor:
+            print("   ⚠️ Búsqueda exacta fallida, intentando búsqueda general...")
+            resultados = self.sp_search.search(q=f"{cancion} {artista}", type="track", limit=10)["tracks"]["items"]
+            mejor = _mejor_track(resultados, cancion, artista)
 
-        print("   ⚠️ Búsqueda exacta fallida, intentando búsqueda general...")
-        resultados = self.sp_search.search(q=f"{cancion} {artista}", type="track", limit=10)
+        if not mejor:
+            print(f"   ❌ No se encontró coincidencia para: {cancion} - {artista}")
+            return None
 
-        mejor_track, mejor_score = None, 0
-        for track in resultados["tracks"]["items"]:
-            track_name, track_artists = _nombre_y_artistas(track)
-
-            score = 0
-            if cancion.lower() in track_name:
-                score += 2
-            if track_name in cancion.lower():
-                score += 1
-            for a in track_artists:
-                if artista.lower() in a:
-                    score += 2
-                if a in artista.lower():
-                    score += 1
-
-            if score > mejor_score and score >= 2:
-                mejor_score, mejor_track = score, track
-
-        if mejor_track:
-            print(f"   ✅ Mejor coincidencia: {mejor_track['name']} - {_artistas_legibles(mejor_track)}")
-            return self._track_a_info(mejor_track)
-
-        print(f"   ❌ No se encontró coincidencia para: {cancion} - {artista}")
-        return None
+        print(f"   ✅ Encontrada: {mejor['name']} - {_artistas_legibles(mejor)}")
+        return self._track_a_info(mejor)

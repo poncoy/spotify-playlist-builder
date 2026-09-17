@@ -39,7 +39,7 @@ para DJs/eventos organizados por bloques). Para cada canción del setlist:
 ## Estructura del proyecto
 
 ```
-LaSedlist.command              # doble clic para correr todo (macOS)
+Execute.command              # doble clic para correr todo (macOS)
 spotify_playlist_builder/      # el paquete
 setlists/
   canciones.ejemplo.txt        # plantilla de formato (versionada)
@@ -70,7 +70,7 @@ B;AUX;Crazy Little Thing Called Love;Queen
 python -m spotify_playlist_builder
 ```
 
-En macOS también podés hacer doble clic en `LaSedlist.command` (abre la Terminal, se ubica en
+En macOS también podés hacer doble clic en `Execute.command` (abre la Terminal, se ubica en
 la carpeta del proyecto y corre el comando de arriba solo).
 
 El script es interactivo: pide confirmación para autenticar tu cuenta (necesario para crear

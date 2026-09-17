@@ -1,5 +1,17 @@
 # Changelog
 
+## v3.10.1
+- Bug real: la creación de playlist fallaba con "Read timed out (read
+  timeout=5)" — spotipy usa 5 segundos de timeout por defecto, insuficiente
+  para crear una playlist con varias decenas de canciones. Subido a 20s en
+  ambos clientes (búsqueda y usuario).
+- El aviso de última actualización del setlist (vacío/pocas canciones) ahora
+  también se repite en el reporte final, no solo al arrancar — en un
+  setlist largo se perdía entre el resto de la salida.
+- El error de creación de playlist ahora aclara que el CSV con todos los
+  datos ya se guardó antes de ese paso, para que quede claro que no se
+  perdió el trabajo si falla solo la playlist.
+
 ## v3.10.0
 - Caché persistente de canciones (`.cache_canciones.json`): los datos que no
   cambian entre corridas (ID de Spotify, duración, género, tonalidad, BPM,

@@ -143,24 +143,33 @@ def _hhmss_a_segundos(hhmmss: str) -> int:
 MINIMO_CANCIONES_SIN_AVISO = 10
 
 
-def _avisar_estado_setlist(ruta: str, canciones: list[Cancion]) -> None:
-    """Avisa cuándo se actualizó el setlist por última vez, y si está vacío o
-    tiene pocas canciones (posible setlist incompleto)."""
+def _mensajes_estado_setlist(ruta: str, canciones: list[Cancion]) -> list[str]:
+    """Arma los avisos de cuándo se actualizó el setlist por última vez, y si
+    está vacío o tiene pocas canciones (posible setlist incompleto). Se
+    imprimen al arrancar y de nuevo en el reporte final, para que no se
+    pierdan entre el resto de la salida en setlists largos."""
+    mensajes = []
     if os.path.exists(ruta):
         mtime = datetime.fromtimestamp(os.path.getmtime(ruta))
         hoy = datetime.now().date()
         if mtime.date() == hoy:
-            print(f"🗓️  Setlist actualizado hoy a las {mtime.strftime('%H:%M')}")
+            mensajes.append(f"🗓️  Setlist actualizado hoy a las {mtime.strftime('%H:%M')}")
         else:
             dias = (hoy - mtime.date()).days
             unidad = "día" if dias == 1 else "días"
-            print(f"🗓️  Setlist actualizado por última vez el {mtime.strftime('%d/%m/%Y')} a las "
-                  f"{mtime.strftime('%H:%M')} (hace {dias} {unidad})")
+            mensajes.append(
+                f"🗓️  Setlist actualizado por última vez el {mtime.strftime('%d/%m/%Y')} a las "
+                f"{mtime.strftime('%H:%M')} (hace {dias} {unidad})"
+            )
 
     if not canciones:
-        print("⚠️  El setlist está vacío.")
+        mensajes.append("⚠️  El setlist está vacío.")
     elif len(canciones) < MINIMO_CANCIONES_SIN_AVISO:
-        print(f"⚠️  Solo hay {len(canciones)} canciones cargadas (menos de {MINIMO_CANCIONES_SIN_AVISO}) — ¿es la lista completa?")
+        mensajes.append(
+            f"⚠️  Solo hay {len(canciones)} canciones cargadas (menos de {MINIMO_CANCIONES_SIN_AVISO}) — ¿es la lista completa?"
+        )
+
+    return mensajes
 
 
 def main() -> pd.DataFrame | None:
@@ -172,7 +181,9 @@ def main() -> pd.DataFrame | None:
     verificar_rotacion_secreto(credenciales)
 
     canciones, nombre_evento = cargar_canciones(CANCIONES_FILE)
-    _avisar_estado_setlist(CANCIONES_FILE, canciones)
+    mensajes_setlist = _mensajes_estado_setlist(CANCIONES_FILE, canciones)
+    for mensaje in mensajes_setlist:
+        print(mensaje)
     if not canciones:
         print(f"❌ No se pudieron cargar canciones desde '{CANCIONES_FILE}'")
         print("📝 Formato esperado:")
@@ -233,6 +244,8 @@ def main() -> pd.DataFrame | None:
     print("\n" + "=" * 100)
     print("📋 REPORTE FINAL")
     print("=" * 100)
+    for mensaje in mensajes_setlist:
+        print(mensaje)
     print(f"🕐 Inicio:    {hora_inicio.strftime('%d/%m/%Y %H:%M:%S')}")
     print(f"🕐 Fin:       {hora_fin.strftime('%d/%m/%Y %H:%M:%S')}")
     print(f"⏱️  Duración:  {_formato_duracion(total_time)} para {len(df)} canciones")

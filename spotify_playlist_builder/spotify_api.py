@@ -46,6 +46,10 @@ GENERO_POR_PRIORIDAD = {
 PUERTOS_OAUTH = [8888, 8889, 9090, 9091, 8765, 8766]
 SCOPE_PLAYLIST = "playlist-modify-public playlist-modify-private user-read-private user-read-email"
 
+# spotipy usa 5s por defecto — muy poco para crear una playlist con varias
+# decenas de canciones (o para una respuesta lenta de la API en general).
+REQUESTS_TIMEOUT = 20
+
 # Etiquetas de versión que Spotify suele agregar al título. Si el título
 # pedido en canciones.txt (o el campo opcional Versión) no las menciona, se
 # penalizan para priorizar la versión de estudio.
@@ -194,7 +198,7 @@ class SpotifyPlaylistClient:
         auth = SpotifyClientCredentials(
             client_id=credenciales.client_id, client_secret=credenciales.client_secret
         )
-        self.sp_search = spotipy.Spotify(auth_manager=auth)
+        self.sp_search = spotipy.Spotify(auth_manager=auth, requests_timeout=REQUESTS_TIMEOUT)
         self.sp_user: spotipy.Spotify | None = None
         self._cache = cache if cache is not None else {}
         self._audio_features_bloqueado = False
@@ -218,7 +222,7 @@ class SpotifyPlaylistClient:
             )
 
             try:
-                sp_user = spotipy.Spotify(auth_manager=auth)
+                sp_user = spotipy.Spotify(auth_manager=auth, requests_timeout=REQUESTS_TIMEOUT)
                 user = sp_user.current_user()
                 print(f"✅ ¡Conexión exitosa! Usuario: {user['display_name']}")
                 self.sp_user = sp_user

@@ -285,16 +285,44 @@ class SpotifyPlaylistClient:
             print(f"   ⚠️ No se pudo refrescar la popularidad, se usa la del caché: {e}")
             return respaldo
 
-    def buscar_track(self, cancion: str, artista: str, version_pedida: str = "") -> TrackInfo | None:
+    def _track_fijado(self, spotify_id: str, cancion_nombre: str) -> TrackInfo | None:
+        """Trae exactamente el track pedido por ID, sin ambigüedad de búsqueda —
+        para cuando hay varias copias idénticas del mismo tema en Spotify y
+        `buscar_track` no tiene forma de saber cuál de todas es la correcta."""
+        try:
+            track = self.sp_search.track(spotify_id)
+        except Exception as e:
+            print(f"   ⚠️ No se pudo obtener el track fijado ({spotify_id}) para '{cancion_nombre}': {e}")
+            return None
+        print(f"   📌 Usando track fijado: {track['name']} - {_artistas_legibles(track)}")
+        return self._track_a_info(track)
+
+    def buscar_track(
+        self, cancion: str, artista: str, version_pedida: str = "", spotify_id: str = ""
+    ) -> TrackInfo | None:
         """Busca una canción, primero con match exacto y luego con una búsqueda más
         laxa; en ambos casos se queda con el track de mejor score (ver _mejor_track),
         que prioriza la versión de estudio salvo que `version_pedida="vivo"` o el
         propio título ya pida otra cosa.
 
+        Si `spotify_id` viene seteado (columna Spotify de canciones.txt), se usa
+        ese track exacto y se saltea toda la búsqueda/caché por nombre — es la
+        única forma de resolver canciones con varias copias idénticas en
+        Spotify (mismo título/artista, distinto ID) donde no hay ninguna señal
+        textual para elegir la correcta.
+
         Los datos estables (BPM, tonalidad, duración, género, etc.) se cachean
         entre corridas — no cambian entre un evento y otro. La popularidad sí
         se vuelve a pedir siempre, ya sea de un track nuevo o de uno cacheado."""
         clave = clave_cache(cancion, artista, version_pedida)
+
+        if spotify_id:
+            info = self._track_fijado(spotify_id, cancion)
+            if info:
+                self._cache[clave] = asdict(info)
+                return info
+            print("   ⏭️  Sigo con la búsqueda normal...")
+
         if clave in self._cache:
             datos = dict(self._cache[clave])
             datos["popularidad"] = self._popularidad_actual(datos["id"], datos.get("popularidad", 0))

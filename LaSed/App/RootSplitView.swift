@@ -7,6 +7,9 @@
 //
 import SwiftUI
 import UniformTypeIdentifiers
+import os
+
+private let logPerf = Logger(subsystem: "com.poncoy.LaSed", category: "diagnostico")
 
 enum SeccionPrincipal: Hashable {
     case biblioteca
@@ -121,7 +124,10 @@ struct RootSplitView: View {
             .listStyle(.sidebar)
             .navigationTitle("La Sed")
             .onAppear { cargarSetlists() }
-            .onChange(of: seccion) { _, _ in selectedSongIds = [] }
+            .onChange(of: seccion) { _, nuevo in
+                logPerf.info("seccion CAMBIO a \(String(describing: nuevo), privacy: .public)")
+                selectedSongIds = []
+            }
             .alert("Nuevo setlist", isPresented: $mostrandoNuevoSetlist) {
                 TextField("Nombre (ej: Fiesta Rosario 20/09)", text: $nuevoNombre)
                 Button("Cancelar", role: .cancel) {}

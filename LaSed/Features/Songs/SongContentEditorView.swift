@@ -2,29 +2,9 @@
 //  SongContentEditorView.swift
 //  LaSed
 //
-//  Versión app:  0.4.10
-//  Fase:         3 — Song Editor: toolbar real (negrita/cursiva/color/
-//                resaltado) sobre selección, como Apple Notes
-//  Modificado:   11/09/2026 (hora no disponible para Claude, sin reloj real) — fix negrita
-//                (laSed.bold/.italic propios) + reemplazo de Menu por popover con
-//                Circle() real (bug de íconos blancos)
+//  Versión: 0.4.10
+//  Actualizado: 11/09/2026
 //
-//  REESCRITO por completo: se abandona el texto con marcadores tecleados
-//  (**negrita**) — el usuario los vio feos y pidió algo "marcando, no
-//  escribiendo". TextEditor ahora liga un AttributedString real (soporte
-//  nativo desde iOS 26 / macOS 26, exactamente el target de este proyecto).
-//  Negrita/cursiva se aplican con transformAttributes(in:) sobre la
-//  selección; color y resaltado igual, con la paleta fija de MarkColor.
-//
-//  Al Guardar, EditSongView llama a NotesImportParser.parseCuerpo(_:
-//  AttributedString, notacion:, fontContext:) — el ancla de acordes sigue
-//  intacta porque los atributos NO agregan caracteres al texto plano
-//  subyacente (a diferencia de escribir ** a mano).
-//
-//  La alineación (izquierda/centro/derecha) sigue como convención escrita
-//  (>>texto / >texto<) — no se migró a botón en este chat, ver nota de
-//  continuidad. No es lo que generó la queja (esa era negrita/cursiva).
-
 import SwiftUI
 
 struct SongContentEditorView: View {

@@ -2,16 +2,9 @@
 //  EditableSongContent.swift
 //  LaSed
 //
-//  Versión app:  0.4.0
-//  Fase:         3 — Song Editor
-//  Modificado:   10/09/2026 (Lima)
+//  Versión: 0.4.0
+//  Actualizado: 10/09/2026
 //
-//  Copia editable en memoria de ParsedSongContent, con UUID por struct
-//  (Identifiable) para edición estructurada por segmento. SIN CONSUMIDOR
-//  REAL desde que el editor pasó a texto plano (SongContentEditorView) —
-//  se deja por si sirve para una futura edición estructurada (arrastrar
-//  para reordenar). No toca ParsedSongContent original.
-
 import Foundation
 
 struct EditableChord: Identifiable, Equatable {

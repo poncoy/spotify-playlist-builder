@@ -2,11 +2,9 @@
 //  MetronomeView.swift
 //  LaSed
 //
-//  Versión app:  0.4.15
-//  Fase:         3 — Song Editor
-//  Modificado:   13/09/2026
+//  Versión: 0.4.15
+//  Actualizado: 13/09/2026
 //
-
 import SwiftUI
 
 struct MetronomeView: View {

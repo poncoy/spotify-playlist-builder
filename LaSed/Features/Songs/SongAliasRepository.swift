@@ -2,11 +2,9 @@
 //  SongAliasRepository.swift
 //  LaSed
 //
-//  Versión app:  0.2.0
-//  Fase:         2 — Song Library
-//  Modificado:   09/09/2026
+//  Versión: 0.2.0
+//  Actualizado: 09/09/2026
 //
-
 import Foundation
 import GRDB
 

@@ -2,13 +2,9 @@
 //  SongChordReferenceView.swift
 //  LaSed
 //
-//  Versión app:  0.4.4
-//  Fase:         3 — Librería de acordes (guitarra)
-//  Modificado:   10/09/2026 (Lima)
+//  Versión: 0.4.4
+//  Actualizado: 10/09/2026
 //
-//  Junta los acordes distintos de la canción y muestra su diagrama (o "no
-//  disponible" si está fuera de alcance de GuitarChordShapes v1).
-
 import SwiftUI
 
 struct SongChordReferenceView: View {

@@ -2,29 +2,9 @@
 //  AddSongView.swift
 //  LaSed
 //
-//  Versión app:  0.3.3
-//  Fase:         3 — Song Editor (ajustes de usabilidad)
-//  Modificado:   10/09/2026 (Lima) — fix definitivo (los 2 anteriores NO
-//  funcionaron): se elimina Form por completo. Confirmado con capturas del
-//  usuario que envolver el TextField en un VStack no evitaba que macOS Form
-//  igual usara su texto de placeholder como etiqueta externa en una columna
-//  aparte — el mecanismo de Form busca un TextField-con-título en cualquier
-//  profundidad de la fila, no solo como hijo directo de Section. Ahora es
-//  ScrollView + VStack + GroupBox, sin ningún layout automático de columnas:
-//  cada campo es Text(etiqueta) + TextField(placeholder) uno debajo del
-//  otro, con .textFieldStyle(.roundedBorder). País/Idioma pasan a HStack
-//  manual (Text + Spacer + Picker sin label) para imitar el layout de fila
-//  clásico sin depender de ningún comportamiento implícito.
-//  País ahora es Picker fijo
-//  (paisesConocidos en Repository.swift), igual que Idioma, en vez de
-//  texto libre. Ventana redimensionable y más grande (antes chica y fija,
-//  (¿en vivo?, país, idioma, nivel) que ya existían en el modelo Song desde
-//  Fase 2 pero faltaban en este formulario — antes solo se podían cargar
-//  editando la canción después de crearla.
+//  Versión: 0.3.3
+//  Actualizado: 10/09/2026
 //
-//  ⚠️ NO COMPILADO POR CLAUDE — sin toolchain de Swift disponible. Compila en
-//  Xcode y pasa el primer error tal cual lo muestra el Issue Navigator.
-
 import SwiftUI
 
 struct AddSongView: View {

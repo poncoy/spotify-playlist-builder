@@ -2,12 +2,9 @@
 //  Models.swift
 //  LaSed
 //
-//  Versión app:  0.1.0
-//  Doc:          v0.2
-//  Fase:         1 — Base de datos y modelos
-//  Modificado:   09/09/2026
+//  Versión: 0.1.0
+//  Actualizado: 09/09/2026
 //
-
 import Foundation
 import GRDB
 
@@ -80,6 +77,7 @@ struct Setlist: Codable, FetchableRecord, MutablePersistableRecord {
     var deletedAt: Date?
     var rev: Int
     var lastEditedBy: String
+    var folder: String? = nil
 }
 
 struct SetBlock: Codable, FetchableRecord, MutablePersistableRecord {

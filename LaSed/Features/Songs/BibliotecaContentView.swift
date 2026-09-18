@@ -2,13 +2,9 @@
 //  BibliotecaContentView.swift
 //  LaSed
 //
-//  Versión app:  0.6.0
-//  Fase:         4 — extraído de SongLibraryView para el nuevo shell de 3
-//                columnas. SongLibraryView.swift queda sin usar, se puede
-//                borrar cuando quieras (ya no forma parte del árbol de vistas).
-//  Modificado:   14/09/2026
+//  Versión: 0.6.0
+//  Actualizado: 14/09/2026
 //
-
 import SwiftUI
 
 struct BibliotecaContentView: View {
@@ -34,6 +30,7 @@ struct BibliotecaContentView: View {
                         Text(song.artist).font(.subheadline).foregroundStyle(.secondary)
                     }
                     .tag(song.id)
+                    .draggable(CancionArrastrada(songId: song.id))
                 }
             }
             .navigationTitle("Canciones")

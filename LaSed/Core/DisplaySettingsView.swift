@@ -2,16 +2,9 @@
 //  DisplaySettingsView.swift
 //  LaSed
 //
-//  Versión app:  0.4.10
-//  Fase:         3 — Song Editor: preferencias de visualización
-//  Modificado:   11/09/2026 (hora no disponible para Claude, sin reloj real) —
-//                agregado ChordFontFamily (tipo de letra, siempre
-//                monoespaciada) con picker que se auto-demuestra
+//  Versión: 0.4.10
+//  Actualizado: 11/09/2026
 //
-//  Ajustes globales de la app: tamaño de letra, 3 espacios independientes
-//  y mayúsculas/minúsculas. Vista previa con 2 estrofas para que el slider
-//  "entre estrofas" se note (antes solo mostraba 1, sin nada que separar).
-
 import SwiftUI
 
 enum LetterCasePreference: String, CaseIterable, Identifiable {

@@ -2,11 +2,9 @@
 //  SongStyleSheetView.swift
 //  LaSed
 //
-//  Versión app:  0.4.16
-//  Fase:         3 — Song Editor: StyleSheet por canción
-//  Modificado:   14/09/2026
+//  Versión: 0.4.16
+//  Actualizado: 14/09/2026
 //
-
 import SwiftUI
 
 struct SongStyleSheetView: View {

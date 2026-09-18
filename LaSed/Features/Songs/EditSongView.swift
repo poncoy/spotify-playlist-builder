@@ -2,17 +2,9 @@
 //  EditSongView.swift
 //  LaSed
 //
-//  Versión app:  0.4.10
-//  Fase:         3 — Song Editor (marks reales vía AttributedString)
-//  Modificado:   11/09/2026 (hora no disponible para Claude, sin reloj real) —
-//                onSave/guardarContenidoEditado ya NO reciben Font.Context
-//                (quedaba sin uso real); agregado fontFamily
+//  Versión: 0.4.10
+//  Actualizado: 11/09/2026
 //
-//  Pestaña "Letra y acordes": modo lectura (ChordChartView + botones de
-//  acordes/ajustes/editar) y modo edición (SongContentEditorView, ahora
-//  AttributedString real con toolbar). Guardar reparsea todo con
-//  NotesImportParser, incluyendo negrita/cursiva/color leídos de los runs.
-
 import SwiftUI
 import Foundation
 

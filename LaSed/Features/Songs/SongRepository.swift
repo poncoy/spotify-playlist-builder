@@ -44,6 +44,11 @@ final class SongRepository {
         try db.dbWriter.read { d in try Song.fetchOne(d, key: id) }
     }
 
+    func fetchByIds(_ ids: [String]) throws -> [Song] {
+        guard !ids.isEmpty else { return [] }
+        return try db.dbWriter.read { d in try Song.fetchAll(d, keys: ids) }
+    }
+
     func fetchAllActive() throws -> [Song] {
         try db.dbWriter.read { d in
             try Song.filter(Column("deletedAt") == nil).fetchAll(d)

@@ -2,16 +2,33 @@
 //  RootSplitView.swift
 //  LaSed
 //
-//  Versión app:  0.6.0
-//  Fase:         4 — Setlists
-//  Modificado:   14/09/2026
+//  Versión: 0.7.0
+//  Actualizado: 15/09/2026
 //
-
 import SwiftUI
+import UniformTypeIdentifiers
 
 enum SeccionPrincipal: Hashable {
     case biblioteca
     case setlist(String)
+}
+
+/// Carga de arrastre para una canción (Biblioteca → Setlist). Tipo propio
+/// (no String pelado) para que no se confunda con el arrastre de un setlist
+/// hacia una carpeta — ambos son IDs, pero representan cosas distintas.
+struct CancionArrastrada: Codable, Transferable {
+    let songId: String
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .plainText)
+    }
+}
+
+/// Carga de arrastre para mover un setlist hacia una carpeta.
+struct SetlistArrastrado: Codable, Transferable {
+    let setlistId: String
+    static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .plainText)
+    }
 }
 
 struct RootSplitView: View {
@@ -21,6 +38,15 @@ struct RootSplitView: View {
     @State private var errorMessage: String?
     @State private var mostrandoNuevoSetlist = false
     @State private var nuevoNombre = ""
+    @State private var setlistParaRenombrar: Setlist?
+    @State private var mostrandoRenombrar = false
+    @State private var nombreRenombrar = ""
+    @State private var setlistParaMover: Setlist?
+    @State private var mostrandoNuevaCarpeta = false
+    @State private var nombreNuevaCarpeta = ""
+    @State private var carpetasColapsadas: Set<String> = []
+    @State private var mostrandoNuevaCarpetaDesdeCero = false
+    @State private var carpetaPendiente: String?
 
     private let setlistRepo = SetlistRepository()
 
@@ -31,19 +57,57 @@ struct RootSplitView: View {
                     .tag(SeccionPrincipal.biblioteca)
 
                 Section {
-                    ForEach(setlists, id: \.id) { setlist in
-                        Label(setlist.name, systemImage: "music.mic")
-                            .tag(SeccionPrincipal.setlist(setlist.id))
-                            .contextMenu {
-                                Button("Duplicar") { duplicar(setlist) }
-                                Button("Eliminar", role: .destructive) { eliminar(setlist) }
+                    if !setlistsSinCarpeta.isEmpty {
+                        ForEach(setlistsSinCarpeta, id: \.id) { setlist in
+                            filaSetlist(setlist)
+                        }
+                    }
+                    ForEach(carpetas, id: \.self) { carpeta in
+                        DisclosureGroup(
+                            isExpanded: Binding(
+                                get: { !carpetasColapsadas.contains(carpeta) },
+                                set: { expandido in
+                                    if expandido { carpetasColapsadas.remove(carpeta) }
+                                    else { carpetasColapsadas.insert(carpeta) }
+                                }
+                            )
+                        ) {
+                            ForEach(setlistsEnCarpeta(carpeta), id: \.id) { setlist in
+                                filaSetlist(setlist)
                             }
+                        } label: {
+                            HStack {
+                                Image(systemName: "folder")
+                                    .foregroundStyle(.blue)
+                                Text(carpeta)
+                                Spacer()
+                                Text("\(setlistsEnCarpeta(carpeta).count)")
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .contentShape(Rectangle())
+                            .dropDestination(for: SetlistArrastrado.self) { arrastrados, _ in
+                                for arrastrado in arrastrados {
+                                    guard let setlist = setlists.first(where: { $0.id == arrastrado.setlistId }) else { continue }
+                                    moverACarpeta(setlist, carpeta: carpeta)
+                                }
+                            }
+                        }
                     }
                 } header: {
                     HStack {
                         Text("Setlists")
                         Spacer()
                         Button {
+                            nombreNuevaCarpeta = ""
+                            mostrandoNuevaCarpetaDesdeCero = true
+                        } label: {
+                            Image(systemName: "folder.badge.plus")
+                        }
+                        .buttonStyle(.plain)
+                        .help("Nueva carpeta")
+
+                        Button {
+                            carpetaPendiente = nil
                             nuevoNombre = ""
                             mostrandoNuevoSetlist = true
                         } label: {
@@ -54,18 +118,49 @@ struct RootSplitView: View {
                     }
                 }
             }
+            .listStyle(.sidebar)
             .navigationTitle("La Sed")
             .onAppear { cargarSetlists() }
+            .onChange(of: seccion) { _, _ in selectedSongIds = [] }
             .alert("Nuevo setlist", isPresented: $mostrandoNuevoSetlist) {
                 TextField("Nombre (ej: Fiesta Rosario 20/09)", text: $nuevoNombre)
                 Button("Cancelar", role: .cancel) {}
                 Button("Crear") { crearSetlist() }
             }
+            .alert("Renombrar setlist", isPresented: $mostrandoRenombrar) {
+                TextField("Nombre", text: $nombreRenombrar)
+                Button("Cancelar", role: .cancel) {}
+                Button("Guardar") { renombrar() }
+            }
+            .alert("Nueva carpeta", isPresented: $mostrandoNuevaCarpetaDesdeCero) {
+                TextField("Nombre (ej: La Sed, Acústicon)", text: $nombreNuevaCarpeta)
+                Button("Cancelar", role: .cancel) {}
+                Button("Crear") {
+                    carpetaPendiente = nombreNuevaCarpeta.trimmingCharacters(in: .whitespaces)
+                    nuevoNombre = ""
+                    mostrandoNuevoSetlist = true
+                }
+            } message: {
+                Text("Ahora ponele nombre al primer setlist de esta carpeta.")
+            }
+            .alert("Nueva carpeta", isPresented: $mostrandoNuevaCarpeta) {
+                TextField("Nombre (ej: La Sed, Acústicon)", text: $nombreNuevaCarpeta)
+                Button("Cancelar", role: .cancel) {}
+                Button("Crear") {
+                    if let setlist = setlistParaMover {
+                        moverACarpeta(setlist, carpeta: nombreNuevaCarpeta)
+                    }
+                }
+            }
         } content: {
             switch seccion {
             case .setlist(let id):
-                SetlistContentView(setlistId: id, selectedSongIds: $selectedSongIds)
-                    .id(id)
+                SetlistContentView(
+                    setlistId: id,
+                    selectedSongIds: $selectedSongIds,
+                    onSetlistChanged: { cargarSetlists() }
+                )
+                .id(id)
             case .biblioteca, nil:
                 BibliotecaContentView(selectedSongIds: $selectedSongIds)
             }
@@ -81,6 +176,51 @@ struct RootSplitView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+    }
+
+    private var carpetas: [String] {
+        Set(setlists.compactMap(\.folder)).sorted()
+    }
+
+    private var setlistsSinCarpeta: [Setlist] {
+        setlists.filter { $0.folder == nil }
+    }
+
+    private func setlistsEnCarpeta(_ carpeta: String) -> [Setlist] {
+        setlists.filter { $0.folder == carpeta }
+    }
+
+    @ViewBuilder
+    private func filaSetlist(_ setlist: Setlist) -> some View {
+        Label(setlist.name, systemImage: "music.mic")
+            .contentShape(Rectangle())
+            .tag(SeccionPrincipal.setlist(setlist.id))
+            .contextMenu {
+                Button("Renombrar") { iniciarRenombrar(setlist) }
+                Menu("Mover a carpeta") {
+                    if setlist.folder != nil {
+                        Button("Sin carpeta") { moverACarpeta(setlist, carpeta: nil) }
+                    }
+                    ForEach(carpetas.filter { $0 != setlist.folder }, id: \.self) { carpeta in
+                        Button(carpeta) { moverACarpeta(setlist, carpeta: carpeta) }
+                    }
+                    Divider()
+                    Button("Nueva carpeta…") {
+                        setlistParaMover = setlist
+                        nombreNuevaCarpeta = ""
+                        mostrandoNuevaCarpeta = true
+                    }
+                }
+                Button("Duplicar") { duplicar(setlist) }
+                Button("Eliminar", role: .destructive) { eliminar(setlist) }
+            }
+            .simultaneousGesture(
+                TapGesture(count: 2).onEnded { iniciarRenombrar(setlist) }
+            )
+            .dropDestination(for: CancionArrastrada.self) { canciones, _ in
+                agregarCanciones(canciones.map(\.songId), a: setlist)
+            }
+            .draggable(SetlistArrastrado(setlistId: setlist.id))
     }
 
     @ViewBuilder
@@ -114,6 +254,8 @@ struct RootSplitView: View {
     private func crearSetlist() {
         let nombre = nuevoNombre.trimmingCharacters(in: .whitespaces)
         guard !nombre.isEmpty else { return }
+        let carpeta = carpetaPendiente
+        carpetaPendiente = nil
         let setlist = Setlist(
             id: UUID().uuidString,
             name: nombre,
@@ -124,7 +266,8 @@ struct RootSplitView: View {
             updatedAt: Date(),
             deletedAt: nil,
             rev: 1,
-            lastEditedBy: "manual"
+            lastEditedBy: "manual",
+            folder: (carpeta?.isEmpty ?? true) ? nil : carpeta
         )
         do {
             try setlistRepo.create(setlist)
@@ -135,6 +278,38 @@ struct RootSplitView: View {
         }
     }
 
+    private func iniciarRenombrar(_ setlist: Setlist) {
+        setlistParaRenombrar = setlist
+        nombreRenombrar = setlist.name
+        mostrandoRenombrar = true
+    }
+
+    private func renombrar() {
+        guard let setlist = setlistParaRenombrar else { return }
+        let nombre = nombreRenombrar.trimmingCharacters(in: .whitespaces)
+        guard !nombre.isEmpty else { return }
+        var actualizado = setlist
+        actualizado.name = nombre
+        do {
+            try setlistRepo.update(actualizado)
+            cargarSetlists()
+        } catch {
+            errorMessage = "No se pudo renombrar el setlist."
+        }
+    }
+
+    private func moverACarpeta(_ setlist: Setlist, carpeta: String?) {
+        let limpia = carpeta?.trimmingCharacters(in: .whitespaces)
+        var actualizado = setlist
+        actualizado.folder = (limpia?.isEmpty ?? true) ? nil : limpia
+        do {
+            try setlistRepo.update(actualizado)
+            cargarSetlists()
+        } catch {
+            errorMessage = "No se pudo mover el setlist de carpeta."
+        }
+    }
+
     private func eliminar(_ setlist: Setlist) {
         do {
             try setlistRepo.softDelete(id: setlist.id, by: "manual")
@@ -142,6 +317,55 @@ struct RootSplitView: View {
             cargarSetlists()
         } catch {
             errorMessage = "No se pudo eliminar el setlist."
+        }
+    }
+
+    /// Arrastrar una o más canciones desde la Biblioteca directo a un
+    /// setlist del sidebar (como arrastrar una nota a una carpeta en
+    /// Notas): usa el primer bloque que tenga, o crea uno "Canciones"
+    /// invisible si el setlist todavía no tiene ninguno.
+    private func agregarCanciones(_ songIds: [String], a setlist: Setlist) {
+        let blockRepo = SetBlockRepository()
+        let itemRepo = SetlistItemRepository()
+        do {
+            var bloque = try blockRepo.fetchActiveBySetlist(setlist.id).first
+            if bloque == nil {
+                let nuevo = SetBlock(
+                    id: UUID().uuidString,
+                    setlistId: setlist.id,
+                    name: "Canciones",
+                    position: 0,
+                    createdAt: Date(),
+                    updatedAt: Date(),
+                    deletedAt: nil,
+                    rev: 1,
+                    lastEditedBy: "manual"
+                )
+                try blockRepo.create(nuevo)
+                bloque = nuevo
+            }
+            guard let bloqueDestino = bloque else { return }
+            var posicion = try itemRepo.fetchActiveByBlock(bloqueDestino.id).count
+            for songId in songIds {
+                let item = SetlistItem(
+                    id: UUID().uuidString,
+                    blockId: bloqueDestino.id,
+                    songId: songId,
+                    position: posicion,
+                    keyOverride: nil,
+                    capoOverride: nil,
+                    notes: nil,
+                    createdAt: Date(),
+                    updatedAt: Date(),
+                    deletedAt: nil,
+                    rev: 1,
+                    lastEditedBy: "manual"
+                )
+                try itemRepo.create(item)
+                posicion += 1
+            }
+        } catch {
+            errorMessage = "No se pudo agregar la canción al setlist."
         }
     }
 

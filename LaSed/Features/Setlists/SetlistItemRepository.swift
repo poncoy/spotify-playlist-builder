@@ -52,4 +52,31 @@ final class SetlistItemRepository {
                 .fetchAll(d)
         }
     }
+
+    /// Proyección: songIds que más aparecieron en bloques con este mismo
+    /// nombre en OTROS setlists (ej: si "A" siempre trae las mismas 3
+    /// canciones de entrada, se sugieren primero). Excluye los ya en `excluir`.
+    func songIdsFrecuentesPorNombreDeBloque(
+        _ nombreBloque: String,
+        excluir: Set<String>,
+        limite: Int = 8
+    ) throws -> [String] {
+        try db.dbWriter.read { d in
+            let filas = try Row.fetchAll(d, sql: """
+                SELECT setlistItem.songId AS songId, COUNT(*) AS frecuencia
+                FROM setlistItem
+                JOIN setBlock ON setBlock.id = setlistItem.blockId
+                WHERE setBlock.name = ? COLLATE NOCASE
+                  AND setlistItem.deletedAt IS NULL
+                  AND setBlock.deletedAt IS NULL
+                GROUP BY setlistItem.songId
+                ORDER BY frecuencia DESC
+                """, arguments: [nombreBloque])
+            return filas
+                .compactMap { $0["songId"] as String? }
+                .filter { !excluir.contains($0) }
+                .prefix(limite)
+                .map { $0 }
+        }
+    }
 }

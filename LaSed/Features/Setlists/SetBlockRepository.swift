@@ -67,4 +67,20 @@ final class SetBlockRepository {
                 .fetchAll(d)
         }
     }
+
+    /// Nombres más usados en cualquier setlist (activo), más frecuentes primero.
+    func nombresMasUsados(limite: Int = 6) throws -> [String] {
+        try db.dbWriter.read { d in
+            let nombres = try SetBlock
+                .filter(Column("deletedAt") == nil)
+                .fetchAll(d)
+                .map(\.name)
+            var conteo: [String: Int] = [:]
+            for nombre in nombres { conteo[nombre, default: 0] += 1 }
+            return conteo
+                .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
+                .prefix(limite)
+                .map(\.key)
+        }
+    }
 }

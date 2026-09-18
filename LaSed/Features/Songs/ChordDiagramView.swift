@@ -2,12 +2,9 @@
 //  ChordDiagramView.swift
 //  LaSed
 //
-//  Versión app:  0.4.4
-//  Fase:         3 — Librería de acordes (guitarra)
-//  Modificado:   10/09/2026 (Lima)
+//  Versión: 0.4.4
+//  Actualizado: 10/09/2026
 //
-//  Diagrama de trastes (6 cuerdas x 4 trastes) a partir de un GuitarChordShape.
-
 import SwiftUI
 
 struct ChordDiagramView: View {

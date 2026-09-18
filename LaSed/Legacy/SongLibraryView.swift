@@ -2,18 +2,9 @@
 //  SongLibraryView.swift
 //  LaSed
 //
-//  Versión app:  0.5.1
-//  Fase:         2/3 — cierre de pendientes menores
-//  Modificado:   11/09/2026 (hora no disponible para Claude, sin reloj real) —
-//                agregado botón "Auditoría Unicode" (P14) en el toolbar
-//  canciones a la vez con resumen previo (pedido explícito: "NO HAY OPCIÓN
-//  DE ELIMINAR MÁS DE UNA CANCIÓN"). Antes selectedSongId era String? (una
-//  sola); ahora selectedSongIds es Set<String>, que en macOS List habilita
-//  selección múltiple nativa (⌘-clic, ⇧-clic) sin código extra.
+//  Versión: 0.5.1
+//  Actualizado: 11/09/2026
 //
-//  ⚠️ NO COMPILADO POR CLAUDE — sin toolchain de Swift disponible. Compila en
-//  Xcode y pasa el primer error tal cual lo muestra el Issue Navigator.
-
 import SwiftUI
 
 struct SongLibraryView: View {

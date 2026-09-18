@@ -2,12 +2,9 @@
 //  AppDatabase.swift
 //  LaSed
 //
-//  Versión app:  0.2.0
-//  Doc:          v0.3
-//  Fase:         2 — Song Library (migración v2: alias + fuentes)
-//  Modificado:   09/09/2026
+//  Versión: 0.2.0
+//  Actualizado: 09/09/2026
 //
-
 import Foundation
 import GRDB
 
@@ -208,6 +205,15 @@ final class AppDatabase {
             // solo el dato base.
             try db.alter(table: "song") { t in
                 t.add(column: "bpm", .integer)
+            }
+        }
+
+        migrator.registerMigration("v6_carpetas_setlist") { db in
+            // Carpetas para agrupar setlists en el sidebar (ej: "La Sed",
+            // "Acústicon"), igual que Apple Notes. Nullable: sin carpeta
+            // asignada, el setlist aparece en "Sin carpeta".
+            try db.alter(table: "setlist") { t in
+                t.add(column: "folder", .text)
             }
         }
         return migrator

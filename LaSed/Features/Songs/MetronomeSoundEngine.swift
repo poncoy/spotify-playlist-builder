@@ -2,11 +2,9 @@
 //  MetronomeSoundEngine.swift
 //  LaSed
 //
-//  Versión app:  0.4.15
-//  Fase:         3 — Song Editor
-//  Modificado:   13/09/2026
+//  Versión: 0.4.15
+//  Actualizado: 13/09/2026
 //
-
 import AVFoundation
 
 enum TimbreMetronomo: String, CaseIterable, Identifiable {
@@ -34,6 +32,7 @@ final class MetronomeSoundEngine {
     private let formato: AVAudioFormat
 
     private var buffers: [TimbreMetronomo: (acento: AVAudioPCMBuffer, normal: AVAudioPCMBuffer)] = [:]
+    private var motorIniciado = false
 
     var volumen: Float {
         get { engine.mainMixerNode.outputVolume }
@@ -57,15 +56,25 @@ final class MetronomeSoundEngine {
             )
         }
 
+    }
+
+    /// El engine NO arranca en init() — recién al primer toque real del
+    /// metrónomo. Arrancarlo antes (ej: al abrir la app) hace que macOS
+    /// registre audio activo y muestre su propio widget de "Reproduciendo
+    /// ahora" sin que el usuario haya tocado nada.
+    private func asegurarMotorIniciado() {
+        guard !motorIniciado else { return }
         do {
             try engine.start()
             jugadorAcento.play()
             jugadorNormal.play()
+            motorIniciado = true
         } catch {}
     }
 
     func reproducir(timbre: TimbreMetronomo, acento: Bool) {
         guard let par = buffers[timbre] else { return }
+        asegurarMotorIniciado()
         let jugador = acento ? jugadorAcento : jugadorNormal
         let buffer = acento ? par.acento : par.normal
         jugador.scheduleBuffer(buffer, at: nil, options: .interrupts)

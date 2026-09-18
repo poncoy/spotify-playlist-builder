@@ -2,26 +2,9 @@
 //  AuditoriaUnicodeView.swift
 //  LaSed
 //
-//  Versión app:  0.5.1
-//  Fase:         Backlog Fase 2 (P14) — Auditoría Unicode
-//  Modificado:   11/09/2026 (hora no disponible para Claude, sin reloj real)
+//  Versión: 0.5.1
+//  Actualizado: 11/09/2026
 //
-//  ⚠️ NO COMPILADO POR CLAUDE — sin toolchain de Swift disponible. Compila y
-//  pasa el primer error tal cual lo muestra el Issue Navigator.
-//
-//  P14: canciones importadas ANTES del fix que reemplaza U+00A0 (espacio
-//  duro — típico al copiar texto desde Apple Notes/Word) por espacio normal
-//  en NotesImportParser.parse() pueden tener U+00A0 suelto en título,
-//  artista, o dentro del contentASTJson ya guardado. Nunca se limpia en
-//  silencio (regla del proyecto desde Fase 0) — esta pantalla lista qué
-//  canciones lo tienen y cuántas veces, con una acción explícita para
-//  limpiarlas.
-//
-//  El reemplazo directo de U+00A0 por " " sobre el JSON crudo (sin
-//  decodificar/recodificar el AST) es seguro porque U+00A0 nunca forma
-//  parte de la sintaxis JSON — solo puede aparecer dentro de un valor de
-//  texto.
-
 import SwiftUI
 
 struct HallazgoUnicode: Identifiable {

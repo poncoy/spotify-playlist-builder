@@ -2,11 +2,9 @@
 //  NotesImportPreviewView.swift
 //  LaSed
 //
-//  Versión app:  0.3.2
-//  Doc:          v0.8 + multi-artista (Fase 2 backlog)
-//  Fase:         2b / P9 / Fase 2 backlog
-//  Modificado:   11/09/2026 (hora no disponible) — lote y SeleccionLoteView
-
+//  Versión: 0.3.2
+//  Actualizado: 11/09/2026
+//
 import SwiftUI
 import UniformTypeIdentifiers
 import Charts

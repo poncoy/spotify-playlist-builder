@@ -2,19 +2,9 @@
 //  ChordChartView.swift
 //  LaSed
 //
-//  Versión app:  0.4.10
-//  Fase:         3 — Song Editor
-//  Modificado:   11/09/2026 (hora no disponible para Claude, sin reloj real) —
-//                usa ChordFontFamily (tipo de letra elegible) en vez de
-//                .system(design: .monospaced) fijo
+//  Versión: 0.4.10
+//  Actualizado: 11/09/2026
 //
-//  Espacio entre secciones: TAMAÑO viene de `separacionPrevia` (cantidad de
-//  Enters, capado a 5x), RAYA viene de `separadorVisible` ("---"). Son
-//  independientes: podés tener espacio grande sin raya, raya sin espacio
-//  extra, o ambos.
-//
-//  ⚠️ NO COMPILADO POR CLAUDE — sin toolchain de Swift disponible.
-
 import SwiftUI
 
 struct ChordChartView: View {

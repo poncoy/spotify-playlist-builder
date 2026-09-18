@@ -2,37 +2,9 @@
 //  NotesImportParser.swift
 //  LaSed
 //
-//  Versión app:  0.4.11
-//  Fase:         3 — Song Editor
-//  Modificado:   11/09/2026 (hora no disponible para Claude, sin reloj real) —
-//                limpiarTitulo() quita prefijos de lista numerada ("12.")
-//                antes de comparar contra el repertorio
+//  Versión: 0.4.11
+//  Actualizado: 11/09/2026
 //
-//  Fix de concurrencia (Swift 6, aislamiento a MainActor por defecto del
-//  proyecto): todos los modelos de este archivo se marcan `nonisolated`
-//  explícitamente, igual que el enum contenedor — son datos puros, no
-//  deben requerir MainActor para construirse.
-//
-//  Dos controles independientes para el espacio entre secciones:
-//  - `separacionPrevia` (Int, cantidad real de líneas en blanco): TAMAÑO.
-//  - `separadorVisible` (Bool, marcador "---"): RAYA visible.
-//
-//  Convierte texto plano (nota de Apple Notes, o el editor de la app) en un
-//  AST (secciones -> líneas -> segmentos con acorde anclado por carácter).
-//
-//  Reglas de diseño que no son obvias del código:
-//  - La notación (inglesa A-G vs solfeo Do-Re-Mi...) se decide UNA VEZ por
-//    archivo completo, nunca por línea (las sílabas de solfeo son palabras
-//    españolas comunes: la, mi, sol, si).
-//  - Una línea de acordes es "anclable" (tablatura real, se ancla carácter
-//    por carácter a la letra de abajo) o "resumen" (progresión compacta tipo
-//    "D - Bm - G - A", nunca se ancla).
-//  - U+FFFC (objeto incrustado perdido al exportar) marca la nota para
-//    revisión, nunca se descarta. Nada se importa en silencio.
-//
-//  ⚠️ Validado en Python, no compilado en Swift. Corre ⌘U (7 tests) después
-//  de tocar este archivo.
-
 import Foundation
 import SwiftUI
 

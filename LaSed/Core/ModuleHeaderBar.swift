@@ -2,13 +2,9 @@
 //  ModuleHeaderBar.swift
 //  LaSed
 //
-//  Versión app:  0.3.0
-//  Fase:         3 — Song Editor
-//  Modificado:   10/09/2026 (Lima)
+//  Versión: 0.3.0
+//  Actualizado: 10/09/2026
 //
-//  Barra de identificación de módulo, primer elemento visible en cada
-//  pantalla principal (no depende de navigationTitle/subtitle del sistema).
-
 import SwiftUI
 
 struct ModuleHeaderBar: View {

@@ -2,12 +2,9 @@
 //  DeviceID.swift
 //  LaSed
 //
-//  Versión app:  0.1.0
-//  Doc:          v0.2
-//  Fase:         1 — Base de datos y modelos
-//  Modificado:   09/09/2026
+//  Versión: 0.1.0
+//  Actualizado: 09/09/2026
 //
-
 import Foundation
 
 enum DeviceID {

@@ -2,26 +2,9 @@
 //  ArtistSuggestionService.swift
 //  LaSed
 //
-//  Versión app:  0.3.2
-//  Doc:          multi-artista (Quedate/Quédate)
-//  Fase:         Backlog Fase 2
-//  Modificado:   11/09/2026 (hora no disponible) — sugerirArtista() detecta
-//                artistaAlternativo cuando 2 artistas distintos casi empatan
+//  Versión: 0.3.2
+//  Actualizado: 11/09/2026
 //
-//  Sugiere artista/banda para una canción importada, comparando su título
-//  contra RepertorioConocido.csv (extraído de tu Excel real, hoja "21.08
-//  Diagonal", 193 canciones). Es una SUGERENCIA editable, nunca autoritativa
-//  — el campo de artista sigue siendo de texto libre en la pantalla de
-//  revisión, esto solo lo pre-llena cuando hay suficiente confianza.
-//
-//  ⚠️ NO COMPILADO POR CLAUDE — algoritmo (limpieza de ruido + Levenshtein)
-//  validado en Python contra títulos reales de tus notas antes de traducir,
-//  pero la sintaxis Swift no se ejecutó. Compila y avisa el primer error.
-//
-//  Umbral de confianza (0.6) es una SUPOSICIÓN inicial — si ves sugerencias
-//  claramente equivocadas, subir el umbral; si ves títulos obvios sin
-//  sugerencia, bajarlo. Ajústalo según lo que veas con datos reales.
-
 import Foundation
 
 struct SugerenciaArtista {

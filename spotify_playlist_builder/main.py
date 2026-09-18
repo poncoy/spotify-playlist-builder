@@ -67,7 +67,7 @@ def procesar_cancion(
         "Método": "No encontrada",
     }
 
-    track = client.buscar_track(cancion.cancion, cancion.artista, cancion.version)
+    track = client.buscar_track(cancion.cancion, cancion.artista, cancion.version, cancion.spotify_id)
     if not track:
         return resultado
 

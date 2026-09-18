@@ -15,6 +15,10 @@ NOMBRES_SEPARADOR = {
 }
 
 
+SPOTIFY_ID_EN_TEXTO = re.compile(r"(?:track/|spotify:track:)([A-Za-z0-9]{22})")
+SPOTIFY_ID_SOLO = re.compile(r"[A-Za-z0-9]{22}")
+
+
 @dataclass
 class Cancion:
     bloque: str
@@ -22,6 +26,20 @@ class Cancion:
     cancion: str
     artista: str
     version: str = ""  # "vivo" para forzar esa versión; vacío = detección automática
+    spotify_id: str = ""  # fija un track exacto, salteando la búsqueda por completo
+
+
+def _extraer_spotify_id(texto: str) -> str:
+    """Acepta una URL de Spotify, un URI (spotify:track:ID) o un ID pelado."""
+    texto = texto.strip()
+    if not texto:
+        return ""
+    match = SPOTIFY_ID_EN_TEXTO.search(texto)
+    if match:
+        return match.group(1)
+    if SPOTIFY_ID_SOLO.fullmatch(texto):
+        return texto
+    return ""
 
 
 def _detectar_separador(linea: str) -> tuple[list[str], str | None]:
@@ -36,10 +54,13 @@ def _detectar_separador(linea: str) -> tuple[list[str], str | None]:
 def cargar_canciones(ruta: str) -> tuple[list[Cancion], str | None]:
     """Carga canciones con información de bloque y orden desde `ruta`.
 
-    Formato esperado por línea: Bloque;Orden;Canción;Artista[;País][;Versión]
+    Formato esperado por línea: Bloque;Orden;Canción;Artista[;País][;Versión][;Spotify]
     (el separador se detecta automáticamente entre ; , : / | o tab). País se
     ignora; Versión es opcional y solo se usa si vale "vivo" (fuerza esa
-    versión en la búsqueda de Spotify en vez de la de estudio).
+    versión en la búsqueda de Spotify en vez de la de estudio); Spotify es
+    una URL/URI/ID de Spotify opcional que fija el track exacto, salteando
+    la búsqueda por completo (para cuando hay varias copias idénticas del
+    mismo tema en Spotify y necesitás una en particular).
     La primera línea puede declarar el evento: `# Evento: Nombre`.
     """
     if not os.path.exists(ruta):
@@ -90,6 +111,7 @@ def cargar_canciones(ruta: str) -> tuple[list[Cancion], str | None]:
 
         bloque, orden, cancion, artista = partes[0], partes[1], partes[2], partes[3]
         version = partes[5].strip() if len(partes) >= 6 else ""
+        spotify_id = _extraer_spotify_id(partes[6]) if len(partes) >= 7 else ""
 
         try:
             orden_num = int(orden)
@@ -98,7 +120,14 @@ def cargar_canciones(ruta: str) -> tuple[list[Cancion], str | None]:
 
         if cancion and artista:
             canciones.append(
-                Cancion(bloque=bloque, orden=orden_num, cancion=cancion, artista=artista, version=version)
+                Cancion(
+                    bloque=bloque,
+                    orden=orden_num,
+                    cancion=cancion,
+                    artista=artista,
+                    version=version,
+                    spotify_id=spotify_id,
+                )
             )
 
     print(f"   ✅ {len(canciones)} canciones cargadas correctamente")

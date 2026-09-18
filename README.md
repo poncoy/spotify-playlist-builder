@@ -55,23 +55,29 @@ resultados/
 
 ```
 # Evento: Nombre del evento
-Bloque;Orden;Canción;Artista;País;Versión
-A;1;Come Together;The Beatles;United Kingdom;
-A;2;Black Magic Woman;Santana;Mexico;
-B;1;Born to Be Wild;Steppenwolf;United States;
-B;AUX;Crazy Little Thing Called Love;Queen;United Kingdom;Vivo
+Bloque;Orden;Canción;Artista;País;Versión;Spotify
+A;1;Come Together;The Beatles;United Kingdom;;
+A;2;Black Magic Woman;Santana;Mexico;;
+B;1;Born to Be Wild;Steppenwolf;United States;;
+B;AUX;Crazy Little Thing Called Love;Queen;United Kingdom;Vivo;
+A;3;El tiempo;Afrodisiaco;Peru;;https://open.spotify.com/track/6A7EtkhzaIAI0I5qCoVdMS
 ```
 
 - El separador se detecta automáticamente (`;`, `,`, `:`, `/`, `|` o tab).
 - `Orden` puede ser numérico o `AUX` (las AUX van al final del bloque).
 - Las canciones de un bloque llamado `Sin Bloque` se agregan en orden aleatorio; el resto
   respeta el `Orden` indicado.
-- `País` y `Versión` son opcionales (podés tener solo 4 columnas, como antes). `País` no se usa
-  para nada, es solo referencia. `Versión` solo importa cuando vale `Vivo`: fuerza que la
-  búsqueda en Spotify traiga la versión en vivo del tema en vez de la de estudio. Dejalo vacío
-  para la mayoría de las canciones — sin el campo, igual se detecta automáticamente cuando el
-  propio título ya lo dice (p. ej. "... - En Vivo", "... Gira 2007", "... El Último Concierto").
-  Este campo sirve para los casos en que el título es "limpio" pero igual querés la versión en vivo.
+- `País`, `Versión` y `Spotify` son opcionales (podés tener solo 4 columnas, como antes). `País`
+  no se usa para nada, es solo referencia.
+- `Versión` solo importa cuando vale `Vivo`: fuerza que la búsqueda en Spotify traiga la versión
+  en vivo del tema en vez de la de estudio. Dejalo vacío para la mayoría de las canciones — sin
+  el campo, igual se detecta automáticamente cuando el propio título ya lo dice (p. ej.
+  "... - En Vivo", "... Gira 2007", "... El Último Concierto").
+- `Spotify` fija el track exacto pegando su URL (o URI, o solo el ID) — saltea la búsqueda por
+  completo. Usalo cuando Spotify tiene varias copias idénticas del mismo tema con distinto ID
+  (pasa seguido con catálogos viejos/regionales) y necesitás una en particular, o cuando la
+  búsqueda automática se equivoca de forma persistente. Un pin siempre gana, incluso si había
+  quedado guardado un match incorrecto en `.cache_canciones.json` de una corrida anterior.
 
 ## Uso
 

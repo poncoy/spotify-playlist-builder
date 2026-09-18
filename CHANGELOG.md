@@ -1,5 +1,19 @@
 # Changelog
 
+## v3.11.0
+- Columna opcional `Spotify` en `canciones.txt` (7ma columna): pegando una
+  URL/URI/ID de Spotify ahí, `buscar_track` usa ese track exacto y saltea
+  la búsqueda por completo — necesario para casos que ninguna heurística de
+  texto puede resolver, como "El Tiempo" de Afrodisiaco (Spotify tiene 6
+  copias idénticas del mismo título/artista con IDs distintos, sin ninguna
+  señal textual para elegir la correcta) o cuando la búsqueda normal se
+  equivoca de forma persistente. Un pin ignora y sobrescribe cualquier
+  entrada incorrecta que hubiera quedado guardada en
+  `.cache_canciones.json` de una corrida anterior.
+- Investigado "Tu Cárcel" (Enanitos Verdes): confirmado que las 38 coincidencias
+  que devuelve Spotify para ese título son todas "En Vivo" — no existe una
+  versión de estudio en su catálogo bajo ese nombre. No es un bug de matching.
+
 ## v3.10.1
 - Bug real: la creación de playlist fallaba con "Read timed out (read
   timeout=5)" — spotipy usa 5 segundos de timeout por defecto, insuficiente

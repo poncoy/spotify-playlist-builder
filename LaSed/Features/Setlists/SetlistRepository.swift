@@ -73,4 +73,33 @@ final class SetlistRepository {
             try Setlist.filter(Column("deletedAt") == nil).fetchAll(d)
         }
     }
+
+    /// Nombres reales: "18/09 Diagonal 🎸", "12/09 Diagonal"... Se le saca
+    /// la fecha de adelante y cualquier emoji/símbolo de atrás para sacar el
+    /// "lugar" repetido, y se ordena por qué tan seguido aparece.
+    func lugaresFrecuentes(limite: Int = 5) throws -> [String] {
+        let nombres = try fetchAllActive().map(\.name)
+        var conteo: [String: Int] = [:]
+        for nombre in nombres {
+            guard let lugar = extraerLugar(nombre) else { continue }
+            conteo[lugar, default: 0] += 1
+        }
+        return conteo
+            .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
+            .prefix(limite)
+            .map(\.key)
+    }
+
+    private func extraerLugar(_ nombre: String) -> String? {
+        var resto = nombre
+        if let rango = resto.range(of: #"^\d{1,2}[/\-]\d{1,2}\s*"#, options: .regularExpression) {
+            resto.removeSubrange(rango)
+        }
+        resto = resto.trimmingCharacters(in: .whitespaces)
+        while let ultimo = resto.last, !(ultimo.isLetter || ultimo.isNumber) {
+            resto.removeLast()
+            resto = resto.trimmingCharacters(in: .whitespaces)
+        }
+        return resto.isEmpty ? nil : resto
+    }
 }

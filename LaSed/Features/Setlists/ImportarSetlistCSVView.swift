@@ -48,8 +48,10 @@ struct ImportarSetlistCSVView: View {
     @State private var nombreSetlist = ""
     @State private var errorMessage: String?
     @State private var filaParaElegirCancion: FilaCSVSetlist.ID?
+    @State private var sugerenciasNombre: [String] = []
 
     private let songRepo = SongRepository()
+    private let setlistRepo = SetlistRepository()
 
     private var bloquesEnOrden: [String] {
         var vistos: [String] = []
@@ -85,9 +87,21 @@ struct ImportarSetlistCSVView: View {
                         .buttonStyle(.borderedProminent)
                 }
             } else {
-                TextField("Ponele un nombre a este setlist", text: $nombreSetlist)
-                    .textFieldStyle(.roundedBorder)
-                    .padding()
+                VStack(alignment: .leading, spacing: 6) {
+                    TextField("Ponele un nombre a este setlist", text: $nombreSetlist)
+                        .textFieldStyle(.roundedBorder)
+                    if !sugerenciasNombre.isEmpty {
+                        FlowLayout(spacing: 6) {
+                            ForEach(sugerenciasNombre, id: \.self) { sugerencia in
+                                Button(sugerencia) { nombreSetlist = sugerencia }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                            }
+                        }
+                    }
+                }
+                .padding()
+                .onAppear { cargarSugerenciasNombre() }
 
                 List {
                     ForEach(bloquesEnOrden, id: \.self) { bloque in
@@ -209,6 +223,17 @@ struct ImportarSetlistCSVView: View {
         }
         if fila.esEnVivo { partes.append("Vivo") }
         return partes.joined(separator: " · ")
+    }
+
+    /// "Hoy + lugar más repetido de tu historial" — ej. si siempre tocás en
+    /// "Diagonal", sugiere "22/09 Diagonal" directo.
+    private func cargarSugerenciasNombre() {
+        guard sugerenciasNombre.isEmpty else { return }
+        let lugares = (try? setlistRepo.lugaresFrecuentes(limite: 3)) ?? []
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM"
+        let hoy = formatter.string(from: Date())
+        sugerenciasNombre = lugares.map { "\(hoy) \($0)" }
     }
 
     private func confirmarTodasLasSugeridas() {

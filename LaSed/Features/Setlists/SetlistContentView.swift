@@ -614,7 +614,7 @@ private struct NuevoBloqueView: View {
 }
 
 /// Envuelve botones a la siguiente línea cuando no entran, tipo "chips".
-private struct FlowLayout: Layout {
+struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {

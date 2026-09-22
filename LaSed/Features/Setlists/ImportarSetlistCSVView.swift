@@ -23,6 +23,7 @@ struct FilaCSVSetlist: Identifiable {
     let tono: String?
     let spotifyId: String?
     let esEnVivo: Bool
+    let duracionSeg: Int?
     var songIdElegido: String?
     var candidato: Song?
     var confianza: Double
@@ -76,7 +77,7 @@ struct ImportarSetlistCSVView: View {
                         .buttonStyle(.borderedProminent)
                 }
             } else {
-                TextField("Nombre del setlist", text: $nombreSetlist)
+                TextField("Ponele un nombre a este setlist", text: $nombreSetlist)
                     .textFieldStyle(.roundedBorder)
                     .padding()
 
@@ -199,9 +200,6 @@ struct ImportarSetlistCSVView: View {
                 errorMessage = "El archivo no tiene filas reconocibles (se esperan columnas Bloque, Orden, Canción, Artista)."
                 return
             }
-            if nombreSetlist.isEmpty {
-                nombreSetlist = url.deletingPathExtension().lastPathComponent
-            }
             filas = try emparejarConBiblioteca(parseadas)
         } catch {
             errorMessage = "No se pudo leer el archivo: \(error.localizedDescription)"
@@ -222,7 +220,8 @@ struct ImportarSetlistCSVView: View {
                 FilaCSVSetlist(
                     bloque: cruda.bloque, orden: cruda.orden, titulo: cruda.titulo,
                     artista: cruda.artista, tono: cruda.tono, spotifyId: cruda.spotifyId,
-                    esEnVivo: cruda.esEnVivo, songIdElegido: songId, candidato: candidato, confianza: confianza
+                    esEnVivo: cruda.esEnVivo, duracionSeg: cruda.duracionSeg,
+                    songIdElegido: songId, candidato: candidato, confianza: confianza
                 )
             }
 
@@ -306,6 +305,13 @@ struct ImportarSetlistCSVView: View {
                         createdAt: Date(), updatedAt: Date(), deletedAt: nil, rev: 1, lastEditedBy: "manual"
                     )
                     try itemRepo.create(item)
+
+                    // Enriquece la canción con la duración del CSV solo si
+                    // todavía no la tenía — nunca pisa un dato ya cargado.
+                    if let duracion = fila.duracionSeg, var song = fila.candidato, song.durationSec == nil {
+                        song.durationSec = duracion
+                        try songRepo.update(song)
+                    }
                 }
             }
             onCreado(setlist.id)
@@ -353,6 +359,7 @@ enum ParserCSVSetlist {
         let tono: String?
         let spotifyId: String?
         let esEnVivo: Bool
+        let duracionSeg: Int?
     }
 
     static func parsear(_ contenido: String) -> [Fila] {
@@ -381,6 +388,7 @@ enum ParserCSVSetlist {
         let iTono = indice(de: ["tonalidad", "tono"])
         let iSpotify = indice(de: ["idspotify", "spotifyid"])
         let iVersion = indice(de: ["version", "versión"])
+        let iDuracion = indice(de: ["duracionhhmmss", "duracion"])
 
         var resultado: [Fila] = []
         for linea in lineas.dropFirst() {
@@ -398,13 +406,29 @@ enum ParserCSVSetlist {
             let esEnVivo = normalizeForMatching(versionTexto).contains("vivo")
                 || normalizeForMatching(versionTexto).contains("live")
                 || normalizeForMatching(titulo).contains("vivo")
+            let duracionTexto = iDuracion.flatMap { campos.indices.contains($0) ? campos[$0].trimmingCharacters(in: .whitespaces) : nil }
+            let duracionSeg = duracionTexto.flatMap(segundosDesde)
             resultado.append(Fila(
                 bloque: campos[iBloque].trimmingCharacters(in: .whitespaces),
                 orden: campos[iOrden].trimmingCharacters(in: .whitespaces),
-                titulo: titulo, artista: artista, tono: tono, spotifyId: spotifyId, esEnVivo: esEnVivo
+                titulo: titulo, artista: artista, tono: tono, spotifyId: spotifyId,
+                esEnVivo: esEnVivo, duracionSeg: duracionSeg
             ))
         }
         return resultado
+    }
+
+    /// "00:03:37" (HH:MM:SS) o "3:37" (MM:SS) → segundos. "00:00:00" se
+    /// trata como "no se sabe" (canción no encontrada en Spotify).
+    private static func segundosDesde(_ texto: String) -> Int? {
+        let partes = texto.split(separator: ":").compactMap { Int($0) }
+        let segundos: Int
+        switch partes.count {
+        case 3: segundos = partes[0] * 3600 + partes[1] * 60 + partes[2]
+        case 2: segundos = partes[0] * 60 + partes[1]
+        default: return nil
+        }
+        return segundos > 0 ? segundos : nil
     }
 
     private static func normalizarNombreColumna(_ nombre: String) -> String {

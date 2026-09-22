@@ -116,7 +116,7 @@ struct SetlistContentView: View {
                     } header: {
                         HStack(spacing: 6) {
                             Text(bloque.name)
-                            Text("(\(items.count))")
+                            Text("(\(items.count)\(duracionBloque(items)))")
                                 .foregroundStyle(Color.secondary)
                             Spacer()
                         }
@@ -378,6 +378,14 @@ struct SetlistContentView: View {
             errorMessage = "No se pudo reordenar el bloque."
             cargarTodo()
         }
+    }
+
+    /// " · 12 min" cuando al menos una canción del bloque tiene duración
+    /// cargada; vacío si ninguna la tiene (no mostrar "0 min" engañoso).
+    private func duracionBloque(_ items: [(item: SetlistItem, song: Song)]) -> String {
+        let segundos = items.compactMap { $0.song.durationSec }.reduce(0, +)
+        guard segundos > 0 else { return "" }
+        return " · \(segundos / 60) min"
     }
 
     private func overridesResumen(_ item: SetlistItem) -> String {

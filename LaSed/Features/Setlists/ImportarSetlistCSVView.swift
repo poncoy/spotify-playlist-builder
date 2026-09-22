@@ -22,6 +22,7 @@ struct FilaCSVSetlist: Identifiable {
     let artista: String
     let tono: String?
     let spotifyId: String?
+    let esEnVivo: Bool
     var songIdElegido: String?
     var candidato: Song?
     var confianza: Double
@@ -181,6 +182,7 @@ struct ImportarSetlistCSVView: View {
         if let tono = fila.tono, !tono.isEmpty, tono.localizedCaseInsensitiveCompare("Desconocida") != .orderedSame {
             partes.append(tono)
         }
+        if fila.esEnVivo { partes.append("Vivo") }
         return partes.joined(separator: " · ")
     }
 
@@ -216,36 +218,50 @@ struct ImportarSetlistCSVView: View {
     private func emparejarConBiblioteca(_ parseadas: [ParserCSVSetlist.Fila]) throws -> [FilaCSVSetlist] {
         let biblioteca = try songRepo.fetchAllActive()
         return parseadas.map { cruda in
+            func fila(songId: String?, candidato: Song?, confianza: Double) -> FilaCSVSetlist {
+                FilaCSVSetlist(
+                    bloque: cruda.bloque, orden: cruda.orden, titulo: cruda.titulo,
+                    artista: cruda.artista, tono: cruda.tono, spotifyId: cruda.spotifyId,
+                    esEnVivo: cruda.esEnVivo, songIdElegido: songId, candidato: candidato, confianza: confianza
+                )
+            }
+
             let matchKey = normalizeForMatching("\(cruda.titulo) \(cruda.artista)")
             if let exacto = biblioteca.first(where: { $0.matchKey == matchKey }) {
-                return FilaCSVSetlist(
-                    bloque: cruda.bloque, orden: cruda.orden, titulo: cruda.titulo,
-                    artista: cruda.artista, tono: cruda.tono, spotifyId: cruda.spotifyId,
-                    songIdElegido: exacto.id, candidato: exacto, confianza: 1.0
-                )
+                return fila(songId: exacto.id, candidato: exacto, confianza: 1.0)
             }
             if let spotifyId = cruda.spotifyId, let porSpotify = biblioteca.first(where: { $0.spotifyId == spotifyId }) {
-                return FilaCSVSetlist(
-                    bloque: cruda.bloque, orden: cruda.orden, titulo: cruda.titulo,
-                    artista: cruda.artista, tono: cruda.tono, spotifyId: cruda.spotifyId,
-                    songIdElegido: porSpotify.id, candidato: porSpotify, confianza: 1.0
-                )
+                return fila(songId: porSpotify.id, candidato: porSpotify, confianza: 1.0)
             }
-            let (mejor, score) = mejorCandidatoFuzzy(titulo: cruda.titulo, artista: cruda.artista, en: biblioteca)
-            return FilaCSVSetlist(
-                bloque: cruda.bloque, orden: cruda.orden, titulo: cruda.titulo,
-                artista: cruda.artista, tono: cruda.tono, spotifyId: cruda.spotifyId,
-                songIdElegido: nil, candidato: score >= 0.75 ? mejor : nil, confianza: score
-            )
+            // Popurrí/mix: el título buscado puede estar CONTENIDO en una
+            // canción más larga de la biblioteca ("Mix de Hits" incluye
+            // varios temas). Se busca por mismo artista primero, como pidió
+            // el usuario, para no matchear un título corto contra cualquier
+            // canción de cualquier artista que lo contenga.
+            let artistaObjetivo = normalizeForMatching(cruda.artista)
+            let tituloObjetivo = normalizeForMatching(cruda.titulo)
+            if let porMix = biblioteca.first(where: {
+                normalizeForMatching($0.artist) == artistaObjetivo
+                    && $0.titleDisplay.count > cruda.titulo.count
+                    && normalizeForMatching($0.titleDisplay).contains(tituloObjetivo)
+            }) {
+                return fila(songId: nil, candidato: porMix, confianza: 0.85)
+            }
+            let (mejor, score) = mejorCandidatoFuzzy(titulo: cruda.titulo, artista: cruda.artista, esEnVivo: cruda.esEnVivo, en: biblioteca)
+            return fila(songId: nil, candidato: score >= 0.75 ? mejor : nil, confianza: score)
         }
     }
 
-    private func mejorCandidatoFuzzy(titulo: String, artista: String, en biblioteca: [Song]) -> (Song?, Double) {
+    /// Penaliza (no descarta) un candidato en vivo cuando el CSV no pidió
+    /// explícitamente una versión en vivo, y viceversa — evita que un match
+    /// "en vivo" se cuele por accidente cuando la lista es de estudio.
+    private func mejorCandidatoFuzzy(titulo: String, artista: String, esEnVivo: Bool, en biblioteca: [Song]) -> (Song?, Double) {
         let objetivo = normalizeForMatching("\(titulo) \(artista)")
         var mejor: Song?
         var mejorScore = 0.0
         for song in biblioteca {
-            let score = similitudLevenshtein(objetivo, song.matchKey)
+            var score = similitudLevenshtein(objetivo, song.matchKey)
+            if song.isLive != esEnVivo { score -= 0.15 }
             if score > mejorScore {
                 mejorScore = score
                 mejor = song
@@ -336,6 +352,7 @@ enum ParserCSVSetlist {
         let artista: String
         let tono: String?
         let spotifyId: String?
+        let esEnVivo: Bool
     }
 
     static func parsear(_ contenido: String) -> [Fila] {
@@ -363,6 +380,7 @@ enum ParserCSVSetlist {
         }
         let iTono = indice(de: ["tonalidad", "tono"])
         let iSpotify = indice(de: ["idspotify", "spotifyid"])
+        let iVersion = indice(de: ["version", "versión"])
 
         var resultado: [Fila] = []
         for linea in lineas.dropFirst() {
@@ -376,10 +394,14 @@ enum ParserCSVSetlist {
             if spotifyId?.isEmpty == true || spotifyId?.localizedCaseInsensitiveCompare("No encontrada") == .orderedSame {
                 spotifyId = nil
             }
+            let versionTexto = iVersion.flatMap { campos.indices.contains($0) ? campos[$0] : nil } ?? ""
+            let esEnVivo = normalizeForMatching(versionTexto).contains("vivo")
+                || normalizeForMatching(versionTexto).contains("live")
+                || normalizeForMatching(titulo).contains("vivo")
             resultado.append(Fila(
                 bloque: campos[iBloque].trimmingCharacters(in: .whitespaces),
                 orden: campos[iOrden].trimmingCharacters(in: .whitespaces),
-                titulo: titulo, artista: artista, tono: tono, spotifyId: spotifyId
+                titulo: titulo, artista: artista, tono: tono, spotifyId: spotifyId, esEnVivo: esEnVivo
             ))
         }
         return resultado

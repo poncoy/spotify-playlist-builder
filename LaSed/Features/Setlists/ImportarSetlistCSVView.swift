@@ -59,8 +59,16 @@ struct ImportarSetlistCSVView: View {
         return vistos
     }
 
-    private var pendientes: Int {
-        filas.filter { $0.estado != .confirmado }.count
+    private var confirmadas: Int {
+        filas.filter { $0.estado == .confirmado }.count
+    }
+
+    private var sugeridasSinConfirmar: Int {
+        filas.filter { $0.estado == .porConfirmar }.count
+    }
+
+    private var sinEncontrar: Int {
+        filas.filter { $0.estado == .sinMatch }.count
     }
 
     var body: some View {
@@ -91,21 +99,37 @@ struct ImportarSetlistCSVView: View {
                     }
                 }
 
-                HStack {
-                    if pendientes > 0 {
-                        Text("\(pendientes) sin confirmar")
-                            .font(.caption)
-                            .foregroundStyle(Color.orange)
-                    } else {
-                        Text("Todo listo (\(filas.count) canciones)")
+                VStack(alignment: .leading, spacing: 6) {
+                    if sugeridasSinConfirmar > 0 {
+                        HStack {
+                            Text("\(sugeridasSinConfirmar) sugeridas sin confirmar — si creás ahora, esas quedan afuera")
+                                .font(.caption)
+                                .foregroundStyle(Color.orange)
+                            Spacer()
+                            Button("Confirmar todas las sugeridas") { confirmarTodasLasSugeridas() }
+                                .buttonStyle(.bordered)
+                        }
+                    }
+                    if sinEncontrar > 0 {
+                        Text("\(sinEncontrar) no se encontraron en la biblioteca — se omiten al crear")
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
                     }
-                    Spacer()
-                    Button("Cancelar") { dismiss() }
-                    Button("Crear setlist") { crearSetlist() }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(nombreSetlist.trimmingCharacters(in: .whitespaces).isEmpty || filas.allSatisfy { $0.estado == .sinMatch })
+                    if nombreSetlist.trimmingCharacters(in: .whitespaces).isEmpty {
+                        Text("Falta ponerle nombre al setlist para poder crearlo")
+                            .font(.caption)
+                            .foregroundStyle(Color.red)
+                    }
+                    HStack {
+                        Text("\(confirmadas) de \(filas.count) canciones listas")
+                            .font(.caption)
+                            .foregroundStyle(Color.secondary)
+                        Spacer()
+                        Button("Cancelar") { dismiss() }
+                        Button("Crear setlist") { crearSetlist() }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(nombreSetlist.trimmingCharacters(in: .whitespaces).isEmpty || confirmadas == 0)
+                    }
                 }
                 .padding()
             }
@@ -185,6 +209,12 @@ struct ImportarSetlistCSVView: View {
         }
         if fila.esEnVivo { partes.append("Vivo") }
         return partes.joined(separator: " · ")
+    }
+
+    private func confirmarTodasLasSugeridas() {
+        for indice in filas.indices where filas[indice].estado == .porConfirmar {
+            filas[indice].songIdElegido = filas[indice].candidato?.id
+        }
     }
 
     private func cargarArchivo(_ url: URL) {
@@ -485,6 +515,11 @@ private struct ElegirCancionParaFilaView: View {
                 searchText = tituloBuscado
                 cargar(query: tituloBuscado)
             }
+            HStack {
+                Spacer()
+                Button("Cerrar sin elegir") { dismiss() }
+            }
+            .padding()
         }
         .frame(width: 380, height: 480)
     }

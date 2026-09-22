@@ -50,6 +50,9 @@ struct RootSplitView: View {
     @State private var carpetasColapsadas: Set<String> = []
     @State private var mostrandoNuevaCarpetaDesdeCero = false
     @State private var carpetaPendiente: String?
+    @State private var carpetaParaRenombrar: String?
+    @State private var mostrandoRenombrarCarpeta = false
+    @State private var nombreRenombrarCarpeta = ""
 
     private let setlistRepo = SetlistRepository()
 
@@ -88,6 +91,16 @@ struct RootSplitView: View {
                                     .foregroundStyle(Color.secondary)
                             }
                             .contentShape(Rectangle())
+                            .contextMenu {
+                                Button("Renombrar carpeta") {
+                                    carpetaParaRenombrar = carpeta
+                                    nombreRenombrarCarpeta = carpeta
+                                    mostrandoRenombrarCarpeta = true
+                                }
+                                Button("Eliminar carpeta", role: .destructive) {
+                                    eliminarCarpeta(carpeta)
+                                }
+                            }
                             .dropDestination(for: SetlistArrastrado.self) { arrastrados, _ in
                                 for arrastrado in arrastrados {
                                     guard let setlist = setlists.first(where: { $0.id == arrastrado.setlistId }) else { continue }
@@ -157,6 +170,11 @@ struct RootSplitView: View {
                         moverACarpeta(setlist, carpeta: nombreNuevaCarpeta)
                     }
                 }
+            }
+            .alert("Renombrar carpeta", isPresented: $mostrandoRenombrarCarpeta) {
+                TextField("Nombre", text: $nombreRenombrarCarpeta)
+                Button("Cancelar", role: .cancel) {}
+                Button("Guardar") { renombrarCarpeta() }
             }
         } content: {
             switch seccion {
@@ -313,6 +331,39 @@ struct RootSplitView: View {
             cargarSetlists()
         } catch {
             errorMessage = "No se pudo mover el setlist de carpeta."
+        }
+    }
+
+    /// Renombra la carpeta entera: reescribe `folder` en todos los setlists
+    /// que la tengan asignada, de una sola vez.
+    private func renombrarCarpeta() {
+        guard let carpetaVieja = carpetaParaRenombrar else { return }
+        let nombreNuevo = nombreRenombrarCarpeta.trimmingCharacters(in: .whitespaces)
+        guard !nombreNuevo.isEmpty else { return }
+        do {
+            for setlist in setlistsEnCarpeta(carpetaVieja) {
+                var actualizado = setlist
+                actualizado.folder = nombreNuevo
+                try setlistRepo.update(actualizado)
+            }
+            cargarSetlists()
+        } catch {
+            errorMessage = "No se pudo renombrar la carpeta."
+        }
+    }
+
+    /// Los setlists de la carpeta vuelven a "Sin carpeta" — la carpeta en sí
+    /// no es una entidad propia, desaparece sola cuando ningún setlist la usa.
+    private func eliminarCarpeta(_ carpeta: String) {
+        do {
+            for setlist in setlistsEnCarpeta(carpeta) {
+                var actualizado = setlist
+                actualizado.folder = nil
+                try setlistRepo.update(actualizado)
+            }
+            cargarSetlists()
+        } catch {
+            errorMessage = "No se pudo eliminar la carpeta."
         }
     }
 

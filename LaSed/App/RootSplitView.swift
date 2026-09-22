@@ -53,6 +53,7 @@ struct RootSplitView: View {
     @State private var carpetaParaRenombrar: String?
     @State private var mostrandoRenombrarCarpeta = false
     @State private var nombreRenombrarCarpeta = ""
+    @State private var mostrandoImportarCSV = false
 
     private let setlistRepo = SetlistRepository()
 
@@ -113,6 +114,14 @@ struct RootSplitView: View {
                     HStack {
                         Text("Setlists")
                         Spacer()
+                        Button {
+                            mostrandoImportarCSV = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.down.on.square")
+                        }
+                        .buttonStyle(.plain)
+                        .help("Importar setlist desde CSV")
+
                         Button {
                             nombreNuevaCarpeta = ""
                             mostrandoNuevaCarpetaDesdeCero = true
@@ -175,6 +184,12 @@ struct RootSplitView: View {
                 TextField("Nombre", text: $nombreRenombrarCarpeta)
                 Button("Cancelar", role: .cancel) {}
                 Button("Guardar") { renombrarCarpeta() }
+            }
+            .sheet(isPresented: $mostrandoImportarCSV) {
+                ImportarSetlistCSVView(onCreado: { id in
+                    cargarSetlists()
+                    seccion = .setlist(id)
+                })
             }
         } content: {
             switch seccion {

@@ -548,7 +548,9 @@ private struct ElegirCancionParaFilaView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(width: 380, height: 480)
+        #endif
     }
 
     private func cargar(query: String) {

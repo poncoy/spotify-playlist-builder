@@ -85,7 +85,9 @@ struct AuditoriaUnicodeView: View {
                 .padding()
             }
         }
+        #if os(macOS)
         .frame(minWidth: 420, idealWidth: 520, minHeight: 380, idealHeight: 560)
+        #endif
         .onAppear { escanear() }
     }
 

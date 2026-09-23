@@ -144,7 +144,9 @@ struct AddSongView: View {
         // tamaño mínimo que pedía el contenido, chico y sin poder
         // arrastrar para agrandar (reportado: "no poder maximizar nada").
         // Con min/ideal/max se vuelve redimensionable de verdad.
+        #if os(macOS)
         .frame(minWidth: 480, idealWidth: 560, maxWidth: 700, minHeight: 480, idealHeight: 620, maxHeight: 800)
+        #endif
     }
 
     private func save() {

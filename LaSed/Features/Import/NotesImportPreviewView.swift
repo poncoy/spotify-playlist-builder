@@ -88,8 +88,10 @@ struct NotesImportPreviewView: View {
                 )
             }
         }
+        #if os(macOS)
         .navigationSplitViewStyle(.balanced)
         .frame(minWidth: 700, idealWidth: 1100, maxWidth: .infinity, minHeight: 500, idealHeight: 700, maxHeight: .infinity)
+        #endif
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cerrar") { dismiss() }
@@ -520,7 +522,9 @@ private struct ResumenDeshacerView: View {
                 .padding()
             }
         }
+        #if os(macOS)
         .frame(minWidth: 420, idealWidth: 480, minHeight: 320, idealHeight: 480)
+        #endif
     }
 }
 
@@ -603,7 +607,9 @@ private struct ResumenLoteView: View {
                 .padding()
             }
         }
+        #if os(macOS)
         .frame(minWidth: 480, idealWidth: 560, minHeight: 420, idealHeight: 620)
+        #endif
     }
 
     /// Agrupa por artista y ordena alfabéticamente artista Y canción dentro
@@ -1017,7 +1023,9 @@ private struct SeleccionLoteView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(minWidth: 560, idealWidth: 640, minHeight: 620, idealHeight: 780, maxHeight: 900)
+        #endif
         .onAppear {
             guard calculando else { return }
             let candidatasCopia = candidatas

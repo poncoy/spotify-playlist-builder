@@ -457,7 +457,9 @@ private struct EditItemOverridesView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(width: 360, height: 260)
+        #endif
         .alert(
             "Error",
             isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -530,7 +532,9 @@ private struct EditSetlistView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(width: 420, height: 360)
+        #endif
         .alert(
             "Error",
             isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -603,7 +607,9 @@ private struct NuevoBloqueView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(width: 420, height: 320)
+        #endif
     }
 
     private func crear() {
@@ -715,7 +721,9 @@ private struct AgregarCancionABloqueView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(width: 460, height: 560)
+        #endif
         .alert(
             "Error",
             isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })

@@ -236,6 +236,7 @@ struct RootSplitView: View {
                             guard let setlist = setlists.first(where: { $0.id == arrastrado.setlistId }) else { continue }
                             moverACarpeta(setlist, carpeta: carpeta)
                         }
+                        return true
                     }
                 }
             }
@@ -326,6 +327,7 @@ struct RootSplitView: View {
                 #endif
                 .dropDestination(for: CancionArrastrada.self) { canciones, _ in
                     agregarCanciones(canciones.map(\.songId), a: setlist)
+                    return true
                 }
                 .draggable(SetlistArrastrado(setlistId: setlist.id))
         }

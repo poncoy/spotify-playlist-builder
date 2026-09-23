@@ -6,6 +6,9 @@
 //  Actualizado: 11/09/2026
 //
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 enum LetterCasePreference: String, CaseIterable, Identifiable {
     case original
@@ -126,6 +129,23 @@ nonisolated enum ChordFontFamily: String, CaseIterable, Identifiable {
         }
         return .custom(nombre, size: size)
     }
+
+    #if os(iOS)
+    /// Mismo criterio que `font(size:negrita:cursiva:)` pero devolviendo un
+    /// `UIFont` real — lo necesita el editor de iOS (`SongContentEditorView`)
+    /// porque ahí el negrita/cursiva se detecta leyendo los symbolic traits
+    /// de la fuente de cada tramo, no un `Font` de SwiftUI.
+    func uiFont(size: Double, negrita: Bool = false, cursiva: Bool = false) -> UIFont {
+        guard let nombre = nombrePostScript(negrita: negrita, cursiva: cursiva) else {
+            let base = UIFont.monospacedSystemFont(ofSize: size, weight: negrita ? .heavy : .regular)
+            guard cursiva, let descriptorCursivo = base.fontDescriptor.withSymbolicTraits(.traitItalic) else {
+                return base
+            }
+            return UIFont(descriptor: descriptorCursivo, size: size)
+        }
+        return UIFont(name: nombre, size: size) ?? UIFont.monospacedSystemFont(ofSize: size, weight: negrita ? .heavy : .regular)
+    }
+    #endif
 }
 
 struct DisplaySettingsView: View {
@@ -216,7 +236,9 @@ struct DisplaySettingsView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(minWidth: 340, minHeight: 480)
+        #endif
     }
 
     @ViewBuilder

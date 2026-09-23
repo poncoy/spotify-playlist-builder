@@ -149,6 +149,8 @@ private struct EliminarCancionesView: View {
             }
             .padding()
         }
+        #if os(macOS)
         .frame(minWidth: 380, idealWidth: 460, maxWidth: .infinity, minHeight: 360, idealHeight: 520, maxHeight: .infinity)
+        #endif
     }
 }

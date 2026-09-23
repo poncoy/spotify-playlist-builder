@@ -99,7 +99,9 @@ struct EditSongView: View {
             }
         }
         .navigationTitle(titleDisplay.isEmpty ? "Canción" : titleDisplay)
+        #if os(macOS)
         .navigationSubtitle("Editor de canción — Biblioteca")
+        #endif
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") { save() }

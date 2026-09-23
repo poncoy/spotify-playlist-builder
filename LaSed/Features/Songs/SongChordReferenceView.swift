@@ -67,7 +67,9 @@ struct SongChordReferenceView: View {
                 }
             }
         }
+        #if os(macOS)
         .frame(width: 420, height: 480)
+        #endif
     }
 
     private func nombreLegible(_ c: Chord) -> String {

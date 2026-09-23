@@ -151,7 +151,9 @@ struct SongStyleSheetView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
+        #if os(macOS)
         .frame(minWidth: 760, minHeight: 520)
+        #endif
         .confirmationDialog(
             "¿Aplicar este estilo a todas las canciones?",
             isPresented: $mostrandoConfirmAplicarTodas,

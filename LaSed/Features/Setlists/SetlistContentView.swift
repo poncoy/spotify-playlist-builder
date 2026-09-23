@@ -697,6 +697,14 @@ private struct AgregarCancionABloqueView: View {
     }
 
     var body: some View {
+        #if os(iOS)
+        NavigationStack { contenido }
+        #else
+        contenido
+        #endif
+    }
+
+    private var contenido: some View {
         VStack(spacing: 0) {
             ModuleHeaderBar(titulo: "Agregar a \(bloque.name) — \(canciones.count) canciones")
             List {

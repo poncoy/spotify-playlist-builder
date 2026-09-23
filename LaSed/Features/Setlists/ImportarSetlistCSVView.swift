@@ -2,12 +2,18 @@
 //  ImportarSetlistCSVView.swift
 //  LaSed
 //
-//  Versión: 0.1.0
-//  Actualizado: 22/09/2026
+//  Versión: 0.2.0
+//  Actualizado: 23/09/2026
 //
-//  Fase 5: el CSV es un BUSCARV contra la biblioteca existente, nunca crea
-//  canciones nuevas. Formatos reales soportados (detectados por el
-//  separador del encabezado):
+//  Fase 5: el CSV primero hace match (BUSCARV) contra la biblioteca
+//  existente; lo que no encuentra, lo crea con los datos que trae el CSV
+//  (pedido explícito: tiene que poder cargar un CSV en un dispositivo
+//  recién instalado, sin biblioteca previa — no hay sincronización entre
+//  dispositivos todavía, eso es Fase 7). Las "sugeridas" (candidato de
+//  biblioteca encontrado pero no confirmado) SÍ siguen quedando afuera si
+//  no se confirman, para no fusionar por error con una canción existente
+//  distinta. Formatos reales soportados (detectados por el separador del
+//  encabezado):
 //    crudo:      Bloque;Orden;Canción;Artista;País;Versión
 //    enriquecido: Bloque,Orden,Canción,Artista,...,Tonalidad,...,ID Spotify,...
 //  "Orden" puede ser numérico o "AUX" (canción extra, va al final del bloque).
@@ -81,7 +87,7 @@ struct ImportarSetlistCSVView: View {
                 ContentUnavailableView {
                     Label("Elegí un archivo CSV", systemImage: "square.and.arrow.down.on.square")
                 } description: {
-                    Text("Bloque, Orden, Canción, Artista — el mismo que genera tu herramienta de Spotify. Solo hace match contra tu biblioteca, no crea canciones nuevas.")
+                    Text("Bloque, Orden, Canción, Artista — el mismo que genera tu herramienta de Spotify. Hace match contra tu biblioteca y crea las que falten.")
                 } actions: {
                     Button("Elegir archivo…") { mostrandoSelector = true }
                         .buttonStyle(.borderedProminent)
@@ -125,7 +131,7 @@ struct ImportarSetlistCSVView: View {
                         }
                     }
                     if sinEncontrar > 0 {
-                        Text("\(sinEncontrar) no se encontraron en la biblioteca — se omiten al crear")
+                        Text("\(sinEncontrar) no están en la biblioteca — se crean nuevas al importar")
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
                     }
@@ -135,14 +141,14 @@ struct ImportarSetlistCSVView: View {
                             .foregroundStyle(Color.red)
                     }
                     HStack {
-                        Text("\(confirmadas) de \(filas.count) canciones listas")
+                        Text("\(confirmadas + sinEncontrar) de \(filas.count) canciones listas")
                             .font(.caption)
                             .foregroundStyle(Color.secondary)
                         Spacer()
                         Button("Cancelar") { dismiss() }
                         Button("Crear setlist") { crearSetlist() }
                             .buttonStyle(.borderedProminent)
-                            .disabled(nombreSetlist.trimmingCharacters(in: .whitespaces).isEmpty || confirmadas == 0)
+                            .disabled(nombreSetlist.trimmingCharacters(in: .whitespaces).isEmpty || (confirmadas == 0 && sinEncontrar == 0))
                     }
                 }
                 .padding()
@@ -347,12 +353,44 @@ struct ImportarSetlistCSVView: View {
                 )
                 try blockRepo.create(bloque)
 
+                // Se incluyen las confirmadas Y las sin ningún candidato — a
+                // estas últimas se les crea la canción con lo que trae el
+                // CSV. Las "sugeridas sin confirmar" (con candidato pero sin
+                // confirmar) quedan afuera a propósito, para no fusionar por
+                // error con una canción existente distinta.
                 let filasDelBloque = filas
-                    .filter { $0.bloque == nombreBloque && $0.songIdElegido != nil }
+                    .filter { $0.bloque == nombreBloque && ($0.songIdElegido != nil || $0.candidato == nil) }
                     .sorted { ordenComparable($0.orden) < ordenComparable($1.orden) }
 
                 for (posicion, fila) in filasDelBloque.enumerated() {
-                    guard let songId = fila.songIdElegido else { continue }
+                    let songId: String
+                    if let elegido = fila.songIdElegido {
+                        songId = elegido
+                    } else {
+                        let nuevoCodigo = try songRepo.suggestNextCode()
+                        let nuevaCancion = Song(
+                            id: nuevoCodigo,
+                            spotifyId: fila.spotifyId,
+                            titleDisplay: fila.titulo,
+                            titleSpotify: nil,
+                            artist: fila.artista,
+                            matchKey: "",
+                            isLive: fila.esEnVivo,
+                            originalKey: nil,
+                            durationSec: fila.duracionSeg,
+                            country: nil,
+                            language: nil,
+                            level: nil,
+                            notes: nil,
+                            createdAt: Date(),
+                            updatedAt: Date(),
+                            deletedAt: nil,
+                            rev: 1,
+                            lastEditedBy: "import-csv"
+                        )
+                        try songRepo.create(nuevaCancion)
+                        songId = nuevoCodigo
+                    }
                     let tonoLimpio = fila.tono?.trimmingCharacters(in: .whitespaces)
                     let tonoValido = (tonoLimpio?.isEmpty ?? true) || tonoLimpio?.localizedCaseInsensitiveCompare("Desconocida") == .orderedSame
                         ? nil : tonoLimpio
@@ -523,6 +561,14 @@ private struct ElegirCancionParaFilaView: View {
     private let songRepo = SongRepository()
 
     var body: some View {
+        #if os(iOS)
+        NavigationStack { contenido }
+        #else
+        contenido
+        #endif
+    }
+
+    private var contenido: some View {
         VStack(spacing: 0) {
             ModuleHeaderBar(titulo: "Elegir canción para \"\(tituloBuscado)\"")
             List(canciones, id: \.id) { song in
@@ -541,6 +587,11 @@ private struct ElegirCancionParaFilaView: View {
             .onAppear {
                 searchText = tituloBuscado
                 cargar(query: tituloBuscado)
+            }
+            .overlay {
+                if canciones.isEmpty {
+                    ContentUnavailableView.search(text: searchText)
+                }
             }
             HStack {
                 Spacer()

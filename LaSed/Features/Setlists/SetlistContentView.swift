@@ -236,7 +236,8 @@ struct SetlistContentView: View {
                     sugerenciasBloque = sugerenciasCargadas
                     itemsPorBloque = mapaFinal
                     let msTotal = Date().timeIntervalSince(inicio) * 1000
-                    logDiag.info("cargarTodo UI ACTUALIZADA \(idActual, privacy: .public) en \(msTotal, privacy: .public) ms")
+                    let msDesdeClic = (CFAbsoluteTimeGetCurrent() - MedicionClicSidebar.inicio) * 1000
+                    logDiag.info("cargarTodo UI ACTUALIZADA \(idActual, privacy: .public) en \(msTotal, privacy: .public) ms — TOTAL desde clic: \(msDesdeClic, privacy: .public) ms")
                 }
             } catch {
                 await MainActor.run {

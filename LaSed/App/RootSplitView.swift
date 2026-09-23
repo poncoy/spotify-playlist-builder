@@ -11,6 +11,28 @@ import os
 
 private let logPerf = Logger(subsystem: "com.poncoy.LaSed", category: "diagnostico")
 
+/// Momento del último clic real en una fila de la sidebar. Vive acá porque
+/// se necesita medir desde RootSplitView (dónde ocurre el clic) hasta
+/// SetlistContentView (dónde termina de pintarse el contenido), dos vistas
+/// en archivos distintos.
+enum MedicionClicSidebar {
+    static var inicio: CFAbsoluteTime = 0
+}
+
+/// Encadena varias vueltas de runloop después del clic. Si esto también da
+/// tiempos bajos pero la pantalla igual se siente lenta, el cuello de
+/// botella está fuera del hilo principal de la app (compositor/WindowServer),
+/// no en código Swift que se pueda optimizar acá.
+private func medirVueltasDeRunloop(etiqueta: String, vuelta: Int = 1) {
+    DispatchQueue.main.async {
+        let ms = (CFAbsoluteTimeGetCurrent() - MedicionClicSidebar.inicio) * 1000
+        logPerf.info("\(etiqueta, privacy: .public) vuelta runloop #\(vuelta) — Δ: \(ms, privacy: .public) ms")
+        if vuelta < 10 {
+            medirVueltasDeRunloop(etiqueta: etiqueta, vuelta: vuelta + 1)
+        }
+    }
+}
+
 enum SeccionPrincipal: Hashable {
     case biblioteca
     case setlist(String)
@@ -59,9 +81,17 @@ struct RootSplitView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(selection: $seccion) {
-                Label("Biblioteca", systemImage: "music.note.list")
-                    .tag(SeccionPrincipal.biblioteca)
+            List {
+                FilaConHover(seleccionada: seccion == .biblioteca) {
+                    Label("Biblioteca", systemImage: "music.note.list")
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            MedicionClicSidebar.inicio = CFAbsoluteTimeGetCurrent()
+                            var t = Transaction()
+                            t.disablesAnimations = true
+                            withTransaction(t) { seccion = .biblioteca }
+                        }
+                }
 
                 Section {
                     if !setlistsSinCarpeta.isEmpty {
@@ -147,7 +177,8 @@ struct RootSplitView: View {
             .navigationTitle("La Sed")
             .onAppear { cargarSetlists() }
             .onChange(of: seccion) { _, nuevo in
-                logPerf.info("seccion CAMBIO a \(String(describing: nuevo), privacy: .public)")
+                let deltaClic = (CFAbsoluteTimeGetCurrent() - MedicionClicSidebar.inicio) * 1000
+                logPerf.info("seccion CAMBIO a \(String(describing: nuevo), privacy: .public) — Δ desde clic: \(deltaClic, privacy: .public) ms")
                 selectedSongIds = []
             }
             .alert("Nuevo setlist", isPresented: $mostrandoNuevoSetlist) {
@@ -192,17 +223,20 @@ struct RootSplitView: View {
                 })
             }
         } content: {
-            switch seccion {
-            case .setlist(let id):
-                SetlistContentView(
-                    setlistId: id,
-                    selectedSongIds: $selectedSongIds,
-                    onSetlistChanged: { cargarSetlists() }
-                )
-                .id(id)
-            case .biblioteca, nil:
-                BibliotecaContentView(selectedSongIds: $selectedSongIds)
+            Group {
+                switch seccion {
+                case .setlist(let id):
+                    SetlistContentView(
+                        setlistId: id,
+                        selectedSongIds: $selectedSongIds,
+                        onSetlistChanged: { cargarSetlists() }
+                    )
+                    .id(id)
+                case .biblioteca, nil:
+                    BibliotecaContentView(selectedSongIds: $selectedSongIds)
+                }
             }
+            .transaction { $0.disablesAnimations = true }
         } detail: {
             detalle
         }
@@ -231,35 +265,46 @@ struct RootSplitView: View {
 
     @ViewBuilder
     private func filaSetlist(_ setlist: Setlist) -> some View {
-        Label(setlist.name, systemImage: "music.mic")
-            .contentShape(Rectangle())
-            .tag(SeccionPrincipal.setlist(setlist.id))
-            .contextMenu {
-                Button("Renombrar") { iniciarRenombrar(setlist) }
-                Menu("Mover a carpeta") {
-                    if setlist.folder != nil {
-                        Button("Sin carpeta") { moverACarpeta(setlist, carpeta: nil) }
+        FilaConHover(seleccionada: seccion == .setlist(setlist.id)) {
+            Label(setlist.name, systemImage: "music.mic")
+                .contentShape(Rectangle())
+                .contextMenu {
+                    Button("Renombrar") { iniciarRenombrar(setlist) }
+                    Menu("Mover a carpeta") {
+                        if setlist.folder != nil {
+                            Button("Sin carpeta") { moverACarpeta(setlist, carpeta: nil) }
+                        }
+                        ForEach(carpetas.filter { $0 != setlist.folder }, id: \.self) { carpeta in
+                            Button(carpeta) { moverACarpeta(setlist, carpeta: carpeta) }
+                        }
+                        Divider()
+                        Button("Nueva carpeta…") {
+                            setlistParaMover = setlist
+                            nombreNuevaCarpeta = ""
+                            mostrandoNuevaCarpeta = true
+                        }
                     }
-                    ForEach(carpetas.filter { $0 != setlist.folder }, id: \.self) { carpeta in
-                        Button(carpeta) { moverACarpeta(setlist, carpeta: carpeta) }
-                    }
-                    Divider()
-                    Button("Nueva carpeta…") {
-                        setlistParaMover = setlist
-                        nombreNuevaCarpeta = ""
-                        mostrandoNuevaCarpeta = true
-                    }
+                    Button("Duplicar") { duplicar(setlist) }
+                    Button("Eliminar", role: .destructive) { eliminar(setlist) }
                 }
-                Button("Duplicar") { duplicar(setlist) }
-                Button("Eliminar", role: .destructive) { eliminar(setlist) }
-            }
-            .simultaneousGesture(
-                TapGesture(count: 2).onEnded { iniciarRenombrar(setlist) }
-            )
-            .dropDestination(for: CancionArrastrada.self) { canciones, _ in
-                agregarCanciones(canciones.map(\.songId), a: setlist)
-            }
-            .draggable(SetlistArrastrado(setlistId: setlist.id))
+                .simultaneousGesture(
+                    TapGesture(count: 1).onEnded {
+                        MedicionClicSidebar.inicio = CFAbsoluteTimeGetCurrent()
+                        logPerf.info("CLIC en fila '\(setlist.name, privacy: .public)'")
+                        var t = Transaction()
+                        t.disablesAnimations = true
+                        withTransaction(t) { seccion = .setlist(setlist.id) }
+                        medirVueltasDeRunloop(etiqueta: "sidebar")
+                    }
+                )
+                .simultaneousGesture(
+                    TapGesture(count: 2).onEnded { iniciarRenombrar(setlist) }
+                )
+                .dropDestination(for: CancionArrastrada.self) { canciones, _ in
+                    agregarCanciones(canciones.map(\.songId), a: setlist)
+                }
+                .draggable(SetlistArrastrado(setlistId: setlist.id))
+        }
     }
 
     @ViewBuilder
@@ -481,5 +526,26 @@ struct RootSplitView: View {
         } catch {
             errorMessage = "No se pudo duplicar el setlist."
         }
+    }
+}
+
+/// Resalta la fila al pasar el mouse por encima, no solo al seleccionarla —
+/// sin esto (perdido al sacar el `selection:` nativo del List) la sidebar
+/// se siente muerta porque no hay ninguna señal visual antes del clic.
+private struct FilaConHover<Content: View>: View {
+    let seleccionada: Bool
+    @ViewBuilder var content: () -> Content
+    @State private var hovering = false
+
+    var body: some View {
+        content()
+            .listRowBackground(
+                (seleccionada ? Color.accentColor.opacity(0.15)
+                : hovering ? Color.secondary.opacity(0.15)
+                : Color.clear)
+                .animation(nil, value: seleccionada)
+                .animation(nil, value: hovering)
+            )
+            .onHover { hovering = $0 }
     }
 }

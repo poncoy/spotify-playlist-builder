@@ -64,6 +64,14 @@ final class MetronomeSoundEngine {
     /// ahora" sin que el usuario haya tocado nada.
     private func asegurarMotorIniciado() {
         guard !motorIniciado else { return }
+        #if os(iOS)
+        // Sin esto, activar el engine corta lo que esté sonando en otra
+        // app (reportado: Spotify se pausaba al usar el metrónomo) — la
+        // categoría por defecto de iOS es .soloAmbient, que silencia todo
+        // lo demás. .ambient + .mixWithOthers deja sonar ambas cosas.
+        try? AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
+        #endif
         do {
             try engine.start()
             jugadorAcento.play()

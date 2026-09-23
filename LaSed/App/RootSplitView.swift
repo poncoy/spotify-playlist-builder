@@ -168,6 +168,9 @@ struct RootSplitView: View {
             .transaction { $0.disablesAnimations = true }
         } detail: {
             detalle
+                #if os(iOS)
+                .navigationSplitViewColumnWidth(min: 280, ideal: 380)
+                #endif
         }
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
@@ -376,13 +379,31 @@ struct RootSplitView: View {
             )
             .id(unicoId)
         } else if selectedSongIds.count > 1 {
-            ContentUnavailableView(
-                "\(selectedSongIds.count) canciones seleccionadas",
-                systemImage: "checkmark.circle"
-            )
+            marcadorVacio("\(selectedSongIds.count) canciones seleccionadas", icono: "checkmark.circle")
         } else {
-            ContentUnavailableView("Selecciona una canción", systemImage: "music.note")
+            marcadorVacio("Selecciona una canción", icono: "music.note")
         }
+    }
+
+    /// Reemplaza a `ContentUnavailableView` acá — en la columna "detail" de
+    /// un `NavigationSplitView` de 3 columnas en iPad, ese componente se
+    /// centraba contra el ancho de TODA la ventana en vez del ancho propio
+    /// de su columna, dejando el texto corrido hacia la izquierda y tapado
+    /// por la columna del medio. Con `.frame(maxWidth: .infinity, ...)`
+    /// puesto directo en este VStack, se centra bien dentro de lo que le
+    /// toca a esta columna nomás.
+    private func marcadorVacio(_ texto: String, icono: String) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: icono)
+                .font(.system(size: 40))
+                .foregroundStyle(Color.secondary)
+            Text(texto)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
     }
 
     private func cargarSetlists() {

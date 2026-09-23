@@ -148,7 +148,9 @@ struct ImportarSetlistCSVView: View {
                 .padding()
             }
         }
+        #if os(macOS)
         .frame(width: 560, height: 620)
+        #endif
         .fileImporter(
             isPresented: $mostrandoSelector,
             allowedContentTypes: [.commaSeparatedText, .plainText]

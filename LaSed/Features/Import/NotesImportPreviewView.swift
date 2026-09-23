@@ -317,7 +317,11 @@ struct NotesImportPreviewView: View {
 
     private func guardarBookmark(_ url: URL) {
         do {
+            #if os(macOS)
             let bookmark = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+            #else
+            let bookmark = try url.bookmarkData(includingResourceValuesForKeys: nil, relativeTo: nil)
+            #endif
             UserDefaults.standard.set(bookmark, forKey: Self.ultimaCarpetaKey)
         } catch {
             // No es crítico: si falla el guardado, simplemente no se recuerda
@@ -330,7 +334,11 @@ struct NotesImportPreviewView: View {
         guard resultados.isEmpty, let bookmark = UserDefaults.standard.data(forKey: Self.ultimaCarpetaKey) else { return }
         do {
             var esObsoleto = false
+            #if os(macOS)
             let url = try URL(resolvingBookmarkData: bookmark, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &esObsoleto)
+            #else
+            let url = try URL(resolvingBookmarkData: bookmark, relativeTo: nil, bookmarkDataIsStale: &esObsoleto)
+            #endif
             cargarCarpeta(url)
             if esObsoleto {
                 guardarBookmark(url)

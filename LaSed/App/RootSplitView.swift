@@ -81,97 +81,12 @@ struct RootSplitView: View {
 
     var body: some View {
         NavigationSplitView {
-            List {
-                FilaConHover(seleccionada: seccion == .biblioteca) {
-                    Label("Biblioteca", systemImage: "music.note.list")
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            MedicionClicSidebar.inicio = CFAbsoluteTimeGetCurrent()
-                            var t = Transaction()
-                            t.disablesAnimations = true
-                            withTransaction(t) { seccion = .biblioteca }
-                        }
-                }
-
-                Section {
-                    if !setlistsSinCarpeta.isEmpty {
-                        ForEach(setlistsSinCarpeta, id: \.id) { setlist in
-                            filaSetlist(setlist)
-                        }
-                    }
-                    ForEach(carpetas, id: \.self) { carpeta in
-                        DisclosureGroup(
-                            isExpanded: Binding(
-                                get: { !carpetasColapsadas.contains(carpeta) },
-                                set: { expandido in
-                                    if expandido { carpetasColapsadas.remove(carpeta) }
-                                    else { carpetasColapsadas.insert(carpeta) }
-                                }
-                            )
-                        ) {
-                            ForEach(setlistsEnCarpeta(carpeta), id: \.id) { setlist in
-                                filaSetlist(setlist)
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: "folder")
-                                    .foregroundStyle(.blue)
-                                Text(carpeta)
-                                Spacer()
-                                Text("\(setlistsEnCarpeta(carpeta).count)")
-                                    .foregroundStyle(Color.secondary)
-                            }
-                            .contentShape(Rectangle())
-                            .contextMenu {
-                                Button("Renombrar carpeta") {
-                                    carpetaParaRenombrar = carpeta
-                                    nombreRenombrarCarpeta = carpeta
-                                    mostrandoRenombrarCarpeta = true
-                                }
-                                Button("Eliminar carpeta", role: .destructive) {
-                                    eliminarCarpeta(carpeta)
-                                }
-                            }
-                            .dropDestination(for: SetlistArrastrado.self) { arrastrados, _ in
-                                for arrastrado in arrastrados {
-                                    guard let setlist = setlists.first(where: { $0.id == arrastrado.setlistId }) else { continue }
-                                    moverACarpeta(setlist, carpeta: carpeta)
-                                }
-                            }
-                        }
-                    }
-                } header: {
-                    HStack {
-                        Text("Setlists")
-                        Spacer()
-                        Button {
-                            mostrandoImportarCSV = true
-                        } label: {
-                            Image(systemName: "square.and.arrow.down.on.square")
-                        }
-                        .buttonStyle(.plain)
-                        .help("Importar setlist desde CSV")
-
-                        Button {
-                            nombreNuevaCarpeta = ""
-                            mostrandoNuevaCarpetaDesdeCero = true
-                        } label: {
-                            Image(systemName: "folder.badge.plus")
-                        }
-                        .buttonStyle(.plain)
-                        .help("Nueva carpeta")
-
-                        Button {
-                            carpetaPendiente = nil
-                            nuevoNombre = ""
-                            mostrandoNuevoSetlist = true
-                        } label: {
-                            Image(systemName: "plus.circle")
-                        }
-                        .buttonStyle(.plain)
-                        .help("Nuevo setlist")
-                    }
-                }
+            Group {
+                #if os(iOS)
+                List(selection: $seccion) { filasSidebar }
+                #else
+                List { filasSidebar }
+                #endif
             }
             .listStyle(.sidebar)
             .navigationTitle("La Sed")
@@ -240,7 +155,9 @@ struct RootSplitView: View {
         } detail: {
             detalle
         }
+        #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
+        #endif
         .alert(
             "Error",
             isPresented: Binding(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })
@@ -248,6 +165,111 @@ struct RootSplitView: View {
             Button("OK") { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
+        }
+    }
+
+    /// Filas del sidebar. En iOS necesita ir dentro de un `List(selection:)`
+    /// real — sin eso, `NavigationSplitView` no empuja la columna de
+    /// contenido en pantallas angostas (UISplitViewController solo dispara
+    /// esa navegación desde su propio mecanismo de selección nativo). En Mac
+    /// las tres columnas están siempre visibles, así que ahí seguimos con la
+    /// asignación manual directa (más rápida, ver `FilaConHover`).
+    @ViewBuilder
+    private var filasSidebar: some View {
+        FilaConHover(seleccionada: seccion == .biblioteca) {
+            Label("Biblioteca", systemImage: "music.note.list")
+                .contentShape(Rectangle())
+                #if os(macOS)
+                .onTapGesture {
+                    MedicionClicSidebar.inicio = CFAbsoluteTimeGetCurrent()
+                    var t = Transaction()
+                    t.disablesAnimations = true
+                    withTransaction(t) { seccion = .biblioteca }
+                }
+                #endif
+        }
+        #if os(iOS)
+        .tag(SeccionPrincipal.biblioteca)
+        #endif
+
+        Section {
+            if !setlistsSinCarpeta.isEmpty {
+                ForEach(setlistsSinCarpeta, id: \.id) { setlist in
+                    filaSetlist(setlist)
+                }
+            }
+            ForEach(carpetas, id: \.self) { carpeta in
+                DisclosureGroup(
+                    isExpanded: Binding(
+                        get: { !carpetasColapsadas.contains(carpeta) },
+                        set: { expandido in
+                            if expandido { carpetasColapsadas.remove(carpeta) }
+                            else { carpetasColapsadas.insert(carpeta) }
+                        }
+                    )
+                ) {
+                    ForEach(setlistsEnCarpeta(carpeta), id: \.id) { setlist in
+                        filaSetlist(setlist)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "folder")
+                            .foregroundStyle(.blue)
+                        Text(carpeta)
+                        Spacer()
+                        Text("\(setlistsEnCarpeta(carpeta).count)")
+                            .foregroundStyle(Color.secondary)
+                    }
+                    .contentShape(Rectangle())
+                    .contextMenu {
+                        Button("Renombrar carpeta") {
+                            carpetaParaRenombrar = carpeta
+                            nombreRenombrarCarpeta = carpeta
+                            mostrandoRenombrarCarpeta = true
+                        }
+                        Button("Eliminar carpeta", role: .destructive) {
+                            eliminarCarpeta(carpeta)
+                        }
+                    }
+                    .dropDestination(for: SetlistArrastrado.self) { arrastrados, _ in
+                        for arrastrado in arrastrados {
+                            guard let setlist = setlists.first(where: { $0.id == arrastrado.setlistId }) else { continue }
+                            moverACarpeta(setlist, carpeta: carpeta)
+                        }
+                    }
+                }
+            }
+        } header: {
+            HStack {
+                Text("Setlists")
+                Spacer()
+                Button {
+                    mostrandoImportarCSV = true
+                } label: {
+                    Image(systemName: "square.and.arrow.down.on.square")
+                }
+                .buttonStyle(.plain)
+                .help("Importar setlist desde CSV")
+
+                Button {
+                    nombreNuevaCarpeta = ""
+                    mostrandoNuevaCarpetaDesdeCero = true
+                } label: {
+                    Image(systemName: "folder.badge.plus")
+                }
+                .buttonStyle(.plain)
+                .help("Nueva carpeta")
+
+                Button {
+                    carpetaPendiente = nil
+                    nuevoNombre = ""
+                    mostrandoNuevoSetlist = true
+                } label: {
+                    Image(systemName: "plus.circle")
+                }
+                .buttonStyle(.plain)
+                .help("Nuevo setlist")
+            }
         }
     }
 
@@ -287,6 +309,7 @@ struct RootSplitView: View {
                     Button("Duplicar") { duplicar(setlist) }
                     Button("Eliminar", role: .destructive) { eliminar(setlist) }
                 }
+                #if os(macOS)
                 .simultaneousGesture(
                     TapGesture(count: 1).onEnded {
                         MedicionClicSidebar.inicio = CFAbsoluteTimeGetCurrent()
@@ -300,11 +323,15 @@ struct RootSplitView: View {
                 .simultaneousGesture(
                     TapGesture(count: 2).onEnded { iniciarRenombrar(setlist) }
                 )
+                #endif
                 .dropDestination(for: CancionArrastrada.self) { canciones, _ in
                     agregarCanciones(canciones.map(\.songId), a: setlist)
                 }
                 .draggable(SetlistArrastrado(setlistId: setlist.id))
         }
+        #if os(iOS)
+        .tag(SeccionPrincipal.setlist(setlist.id))
+        #endif
     }
 
     @ViewBuilder

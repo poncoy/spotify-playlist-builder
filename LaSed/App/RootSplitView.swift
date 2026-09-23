@@ -34,6 +34,7 @@ private func medirVueltasDeRunloop(etiqueta: String, vuelta: Int = 1) {
 }
 
 enum SeccionPrincipal: Hashable {
+    case inicio
     case biblioteca
     case setlist(String)
 }
@@ -57,7 +58,7 @@ struct SetlistArrastrado: Codable, Transferable {
 }
 
 struct RootSplitView: View {
-    @State private var seccion: SeccionPrincipal? = .biblioteca
+    @State private var seccion: SeccionPrincipal? = .inicio
     @State private var setlists: [Setlist] = []
     @State private var selectedSongIds: Set<String> = []
     @State private var errorMessage: String?
@@ -95,6 +96,9 @@ struct RootSplitView: View {
                 let deltaClic = (CFAbsoluteTimeGetCurrent() - MedicionClicSidebar.inicio) * 1000
                 logPerf.info("seccion CAMBIO a \(String(describing: nuevo), privacy: .public) — Δ desde clic: \(deltaClic, privacy: .public) ms")
                 selectedSongIds = []
+                if case .setlist(let id) = nuevo, let setlist = setlists.first(where: { $0.id == id }) {
+                    RecentsTracker.registrar(id: setlist.id, tipo: .setlist, titulo: setlist.name, subtitulo: setlist.venue)
+                }
             }
             .alert("Nuevo setlist", isPresented: $mostrandoNuevoSetlist) {
                 TextField("Nombre (ej: Fiesta Rosario 20/09)", text: $nuevoNombre)
@@ -147,8 +151,18 @@ struct RootSplitView: View {
                         onSetlistChanged: { cargarSetlists() }
                     )
                     .id(id)
-                case .biblioteca, nil:
+                case .biblioteca:
                     BibliotecaContentView(selectedSongIds: $selectedSongIds)
+                case .inicio, nil:
+                    HomeView(
+                        seccion: $seccion,
+                        onNuevoSetlist: {
+                            carpetaPendiente = nil
+                            nuevoNombre = ""
+                            mostrandoNuevoSetlist = true
+                        },
+                        onImportarCSV: { mostrandoImportarCSV = true }
+                    )
                 }
             }
             .transaction { $0.disablesAnimations = true }
@@ -176,6 +190,22 @@ struct RootSplitView: View {
     /// asignación manual directa (más rápida, ver `FilaConHover`).
     @ViewBuilder
     private var filasSidebar: some View {
+        FilaConHover(seleccionada: seccion == .inicio) {
+            Label("Inicio", systemImage: "house")
+                .contentShape(Rectangle())
+                #if os(macOS)
+                .onTapGesture {
+                    MedicionClicSidebar.inicio = CFAbsoluteTimeGetCurrent()
+                    var t = Transaction()
+                    t.disablesAnimations = true
+                    withTransaction(t) { seccion = .inicio }
+                }
+                #endif
+        }
+        #if os(iOS)
+        .tag(SeccionPrincipal.inicio)
+        #endif
+
         FilaConHover(seleccionada: seccion == .biblioteca) {
             Label("Biblioteca", systemImage: "music.note.list")
                 .contentShape(Rectangle())

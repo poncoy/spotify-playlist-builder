@@ -200,8 +200,24 @@ struct NotesImportPreviewView: View {
             // de navegación cuando la columna lateral queda angosta —
             // confundía al usuario, parecía una ventana sin botón de cerrar.
             #if os(iOS)
+            // El "Cerrar" del toolbar del NavigationSplitView externo
+            // (.cancellationAction, más abajo en este archivo) no se
+            // renderiza en este layout de iPad — el usuario quedaba sin
+            // forma de cerrar la ventana de importación. Se repite acá,
+            // directo en el toolbar de la lista, que sí se pinta siempre.
             ToolbarItem(placement: .topBarLeading) {
-                Button("Elegir carpeta...") { mostrandoSelectorDeCarpeta = true }
+                Button("Cerrar") { dismiss() }
+            }
+            // "Elegir carpeta" va a la derecha, como ícono compacto: puesto a
+            // la izquierda competía por el mismo lugar que el "Cerrar" del
+            // NavigationSplitView (cancellationAction) y lo tapaba — el
+            // usuario no encontraba cómo cerrar la ventana de importación.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    mostrandoSelectorDeCarpeta = true
+                } label: {
+                    Label("Elegir carpeta", systemImage: "folder.badge.plus")
+                }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Importar lote (\(candidatosParaLote.count))") {

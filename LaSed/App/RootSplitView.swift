@@ -168,9 +168,6 @@ struct RootSplitView: View {
             .transaction { $0.disablesAnimations = true }
         } detail: {
             detalle
-                #if os(iOS)
-                .navigationSplitViewColumnWidth(min: 280, ideal: 380)
-                #endif
         }
         #if os(macOS)
         .frame(minWidth: 900, minHeight: 600)
@@ -378,32 +375,19 @@ struct RootSplitView: View {
                 onDeleted: { selectedSongIds = [] }
             )
             .id(unicoId)
-        } else if selectedSongIds.count > 1 {
-            marcadorVacio("\(selectedSongIds.count) canciones seleccionadas", icono: "checkmark.circle")
         } else {
-            marcadorVacio("Selecciona una canción", icono: "music.note")
+            // (seguro) Antes esto mostraba un ícono + texto ("Selecciona
+            // una canción" / "N canciones seleccionadas") vía
+            // ContentUnavailableView y después vía un VStack propio —
+            // ninguno de los dos se centraba bien en la columna "detail"
+            // de un NavigationSplitView de 3 columnas en iPad real (el
+            // texto quedaba corrido hacia la izquierda, tapado por la
+            // columna del medio; no se pudo reproducir en el simulador
+            // para seguir iterando). No hay contenido esencial acá — se
+            // deja vacío a propósito en vez de seguir arriesgando el
+            // mismo bug con otro layout.
+            Color.clear
         }
-    }
-
-    /// Reemplaza a `ContentUnavailableView` acá — en la columna "detail" de
-    /// un `NavigationSplitView` de 3 columnas en iPad, ese componente se
-    /// centraba contra el ancho de TODA la ventana en vez del ancho propio
-    /// de su columna, dejando el texto corrido hacia la izquierda y tapado
-    /// por la columna del medio. Con `.frame(maxWidth: .infinity, ...)`
-    /// puesto directo en este VStack, se centra bien dentro de lo que le
-    /// toca a esta columna nomás.
-    private func marcadorVacio(_ texto: String, icono: String) -> some View {
-        VStack(spacing: 10) {
-            Image(systemName: icono)
-                .font(.system(size: 40))
-                .foregroundStyle(Color.secondary)
-            Text(texto)
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Color.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding()
     }
 
     private func cargarSetlists() {

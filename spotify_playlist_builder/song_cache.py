@@ -4,6 +4,7 @@ setlists que reusan temas ya procesados en una corrida anterior.
 
 Reproducciones y Popularidad NO se cachean acá — esos cambian con el tiempo,
 así que siempre se vuelven a pedir frescos (ver SpotifyPlaylistClient).
+update : 23/06/2024
 """
 
 import json

@@ -77,11 +77,15 @@ struct RootSplitView: View {
     @State private var mostrandoRenombrarCarpeta = false
     @State private var nombreRenombrarCarpeta = ""
     @State private var mostrandoImportarCSV = false
+    // Sin esto, un NavigationSplitView de 3 columnas arranca en iPad con el
+    // sidebar colapsado (solo contenido+detalle) — no había forma de volver
+    // al menú Inicio/Biblioteca/Setlists sin abrirlo a mano cada vez.
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     private let setlistRepo = SetlistRepository()
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             Group {
                 #if os(iOS)
                 List(selection: $seccion) { filasSidebar }

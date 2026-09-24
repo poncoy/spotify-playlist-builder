@@ -195,6 +195,30 @@ struct NotesImportPreviewView: View {
             }
         }
         .toolbar {
+            // (iOS) Sin placement explícito, iOS/iPadOS puede terminar
+            // mostrando el texto de este botón en vez del título de la barra
+            // de navegación cuando la columna lateral queda angosta —
+            // confundía al usuario, parecía una ventana sin botón de cerrar.
+            #if os(iOS)
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Elegir carpeta...") { mostrandoSelectorDeCarpeta = true }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Importar lote (\(candidatosParaLote.count))") {
+                    seleccionLote = Set(candidatosParaLote.map(\.archivoOriginal))
+                    mostrandoSeleccionLote = true
+                }
+                .disabled(candidatosParaLote.isEmpty || procesandoLote)
+            }
+            if !ultimoLote.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Deshacer lote (\(ultimoLote.count))", role: .destructive) {
+                        mostrandoConfirmDeshacer = true
+                    }
+                    .disabled(procesandoLote)
+                }
+            }
+            #else
             ToolbarItem {
                 Button("Elegir carpeta...") { mostrandoSelectorDeCarpeta = true }
             }
@@ -213,6 +237,7 @@ struct NotesImportPreviewView: View {
                     .disabled(procesandoLote)
                 }
             }
+            #endif
         }
         .safeAreaInset(edge: .bottom) {
             if !resultados.isEmpty {
@@ -292,10 +317,20 @@ struct NotesImportPreviewView: View {
             }
 
             var nuevos: [ParsedNoteResult] = []
+            var archivosConError: [String] = []
             for archivo in archivos {
-                let contenido = try String(contentsOf: archivo, encoding: .utf8)
+                // Cada archivo se intenta por separado: uno ilegible (p.ej. un
+                // .txt de iCloud aún no descargado al dispositivo) no debe
+                // tirar abajo el lote entero — se salta y se avisa al final.
+                guard let contenido = try? String(contentsOf: archivo, encoding: .utf8) else {
+                    archivosConError.append(archivo.lastPathComponent)
+                    continue
+                }
                 let resultado = NotesImportParser.parse(rawText: contenido, fileName: archivo.lastPathComponent)
                 nuevos.append(resultado)
+            }
+            if !archivosConError.isEmpty {
+                mensajeError = "No se pudieron leer \(archivosConError.count) archivo(s): \(archivosConError.joined(separator: ", ")). Puede que no estén descargados de iCloud todavía."
             }
             // Orden pedido: primero las que requieren revisión (para atacarlas
             // de una vez), luego las que no; alfabético dentro de cada grupo.

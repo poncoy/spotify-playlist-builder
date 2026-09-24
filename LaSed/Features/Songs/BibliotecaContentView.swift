@@ -25,9 +25,17 @@ struct BibliotecaContentView: View {
             ModuleHeaderBar(titulo: "Biblioteca de canciones")
             List(selection: $selectedSongIds) {
                 ForEach(songs, id: \.id) { song in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(song.titleDisplay).font(.headline)
-                        Text(song.artist).font(.subheadline).foregroundStyle(.secondary)
+                    let tieneLetra = !(song.contentASTJson ?? "").isEmpty
+                    HStack(alignment: .top, spacing: 8) {
+                        Circle()
+                            .fill(tieneLetra ? Color.green : Color.secondary.opacity(0.4))
+                            .frame(width: 8, height: 8)
+                            .padding(.top, 5)
+                            .help(tieneLetra ? "Tiene letra" : "Sin letra")
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(song.titleDisplay).font(.headline)
+                            Text(song.artist).font(.subheadline).foregroundStyle(.secondary)
+                        }
                     }
                     .tag(song.id)
                     .draggable(CancionArrastrada(songId: song.id))

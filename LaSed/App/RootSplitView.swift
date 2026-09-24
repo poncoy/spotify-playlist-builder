@@ -2,8 +2,8 @@
 //  RootSplitView.swift
 //  LaSed
 //
-//  Versión: 0.7.0
-//  Actualizado: 15/09/2026
+//  Versión: 0.7.1
+//  Actualizado: 24/09/2026
 //
 import SwiftUI
 import UniformTypeIdentifiers
@@ -81,6 +81,11 @@ struct RootSplitView: View {
     // sidebar colapsado (solo contenido+detalle) — no había forma de volver
     // al menú Inicio/Biblioteca/Setlists sin abrirlo a mano cada vez.
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    // Campanita de pendientes (pedido en este chat): antes, después de cerrar
+    // el resultado del lote, no quedaba ningún aviso visible de que faltaban
+    // canciones por revisar/completar — había que acordarse solo.
+    @State private var pendientesImport: ResumenPendientes?
+    @State private var mostrandoImportadorDesdeCampanita = false
 
     private let setlistRepo = SetlistRepository()
 
@@ -95,7 +100,33 @@ struct RootSplitView: View {
             }
             .listStyle(.sidebar)
             .navigationTitle("La Sed")
-            .onAppear { cargarSetlists() }
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        mostrandoImportadorDesdeCampanita = true
+                    } label: {
+                        Image(systemName: (pendientesImport?.total ?? 0) > 0 ? "bell.badge.fill" : "bell")
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        if let total = pendientesImport?.total, total > 0 {
+                            Text("\(min(total, 99))")
+                                .font(.caption2.bold())
+                                .foregroundStyle(.white)
+                                .padding(3)
+                                .background(Circle().fill(.red))
+                                .offset(x: 8, y: -6)
+                        }
+                    }
+                    .help(pendientesImport.map { "\($0.total) canción(es) pendiente(s) de importar" } ?? "Sin pendientes")
+                }
+            }
+            .sheet(isPresented: $mostrandoImportadorDesdeCampanita, onDismiss: refrescarPendientesImport) {
+                NotesImportPreviewView()
+            }
+            .onAppear {
+                cargarSetlists()
+                refrescarPendientesImport()
+            }
             .onChange(of: seccion) { _, nuevo in
                 let deltaClic = (CFAbsoluteTimeGetCurrent() - MedicionClicSidebar.inicio) * 1000
                 logPerf.info("seccion CAMBIO a \(String(describing: nuevo), privacy: .public) — Δ desde clic: \(deltaClic, privacy: .public) ms")
@@ -103,6 +134,9 @@ struct RootSplitView: View {
                 if case .setlist(let id) = nuevo, let setlist = setlists.first(where: { $0.id == id }) {
                     RecentsTracker.registrar(id: setlist.id, tipo: .setlist, titulo: setlist.name, subtitulo: setlist.venue)
                 }
+                // Cubre volver de Biblioteca, donde está el importador
+                // original — ese sheet no avisa a esta vista al cerrarse.
+                refrescarPendientesImport()
             }
             .alert("Nuevo setlist", isPresented: $mostrandoNuevoSetlist) {
                 TextField("Nombre (ej: Fiesta Rosario 20/09)", text: $nuevoNombre)
@@ -401,6 +435,10 @@ struct RootSplitView: View {
         } catch {
             errorMessage = "No se pudieron cargar los setlists."
         }
+    }
+
+    private func refrescarPendientesImport() {
+        pendientesImport = ImportadorPendientes.contar()
     }
 
     private func crearSetlist() {

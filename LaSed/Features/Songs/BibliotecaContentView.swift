@@ -2,8 +2,8 @@
 //  BibliotecaContentView.swift
 //  LaSed
 //
-//  Versión: 0.6.0
-//  Actualizado: 14/09/2026
+//  Versión: 0.7.0
+//  Actualizado: 24/09/2026
 //
 import SwiftUI
 

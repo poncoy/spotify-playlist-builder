@@ -2,8 +2,8 @@
 //  NotesImportPreviewView.swift
 //  LaSed
 //
-//  Versión: 0.3.2
-//  Actualizado: 11/09/2026
+//  Versión: 0.4.0
+//  Actualizado: 24/09/2026
 //
 import SwiftUI
 import UniformTypeIdentifiers

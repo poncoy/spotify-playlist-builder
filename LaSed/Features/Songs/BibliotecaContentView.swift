@@ -20,25 +20,43 @@ struct BibliotecaContentView: View {
 
     private let repo = SongRepository()
 
+    /// Con letra primero (alfabético), sin letra después (alfabético) —
+    /// separadas así para poder ubicar y eliminar en bloque las canciones
+    /// viejas de prueba que nunca tuvieron contenido.
+    private var conLetra: [Song] { songs.filter { !($0.contentASTJson ?? "").isEmpty } }
+    private var sinLetra: [Song] { songs.filter { ($0.contentASTJson ?? "").isEmpty } }
+
+    @ViewBuilder
+    private func fila(_ song: Song) -> some View {
+        let tieneLetra = !(song.contentASTJson ?? "").isEmpty
+        HStack(alignment: .top, spacing: 8) {
+            Circle()
+                .fill(tieneLetra ? Color.green : Color.secondary.opacity(0.4))
+                .frame(width: 8, height: 8)
+                .padding(.top, 5)
+                .help(tieneLetra ? "Tiene letra" : "Sin letra")
+            VStack(alignment: .leading, spacing: 4) {
+                Text(song.titleDisplay).font(.headline)
+                Text(song.artist).font(.subheadline).foregroundStyle(.secondary)
+            }
+        }
+        .tag(song.id)
+        .draggable(CancionArrastrada(songId: song.id))
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             ModuleHeaderBar(titulo: "Biblioteca de canciones")
             List(selection: $selectedSongIds) {
-                ForEach(songs, id: \.id) { song in
-                    let tieneLetra = !(song.contentASTJson ?? "").isEmpty
-                    HStack(alignment: .top, spacing: 8) {
-                        Circle()
-                            .fill(tieneLetra ? Color.green : Color.secondary.opacity(0.4))
-                            .frame(width: 8, height: 8)
-                            .padding(.top, 5)
-                            .help(tieneLetra ? "Tiene letra" : "Sin letra")
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(song.titleDisplay).font(.headline)
-                            Text(song.artist).font(.subheadline).foregroundStyle(.secondary)
-                        }
+                if !conLetra.isEmpty {
+                    Section("Con letra (\(conLetra.count))") {
+                        ForEach(conLetra, id: \.id) { song in fila(song) }
                     }
-                    .tag(song.id)
-                    .draggable(CancionArrastrada(songId: song.id))
+                }
+                if !sinLetra.isEmpty {
+                    Section("Sin letra (\(sinLetra.count))") {
+                        ForEach(sinLetra, id: \.id) { song in fila(song) }
+                    }
                 }
             }
             .navigationTitle("Canciones")
